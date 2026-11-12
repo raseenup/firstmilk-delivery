@@ -19,7 +19,7 @@
                 <i class="fa-solid fa-truck-fast text-2xl"></i>
                 <span class="font-bold text-xl">First Milk Driver</span>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3">
                 <select id="lang-switcher" onchange="switchLanguage(this.value)" class="bg-blue-700 text-white text-sm rounded px-2 py-1 border border-blue-500">
                     <option value="en">English</option>
                     <option value="ar">العربية</option>
@@ -37,24 +37,66 @@
     <!-- Main Container -->
     <div class="max-w-4xl mx-auto px-4 py-6">
         
-        <!-- Login View -->
-        <div id="login-view" class="bg-white rounded-xl shadow-md p-6 max-w-md mx-auto mt-10">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center" data-i18n="login_title">Driver Portal Login</h2>
+        <!-- 1. Strict Unique Secret Code Login View -->
+        <div id="login-view" class="bg-white rounded-xl shadow-md p-6 max-w-md mx-auto mt-8">
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-key text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800" data-i18n="login_title">Driver Portal Login</h2>
+                <p class="text-xs text-gray-500 mt-1" data-i18n="login_subtitle">Enter the unique secret code issued to you by the Admin Portal</p>
+            </div>
             <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-gray-700 text-sm font-semibold mb-2" data-i18n="driver_key_label">Unique Driver Secret Key</label>
-                    <input type="password" id="driver-key-input" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your secret key">
+                    <label class="block text-gray-700 text-sm font-semibold mb-2" data-i18n="driver_key_label">Unique Driver Secret Code</label>
+                    <input type="password" id="driver-key-input" required class="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your admin-assigned secret code">
                 </div>
-                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition" data-i18n="login_btn">Secure Login</button>
+                <p id="login-error-msg" class="hidden text-red-600 text-xs font-semibold"></p>
+                <button type="submit" id="login-submit-btn" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-lg hover:bg-blue-700 transition" data-i18n="login_btn">Verify & Access Portal</button>
             </form>
         </div>
 
-        <!-- Pre-Trip Inspection & Shift View (Hidden by default until login) -->
+        <!-- 2. Driver Personal Details View (Name, Phone Number, Address) -->
+        <div id="profile-view" class="hidden bg-white rounded-xl shadow-md p-6 max-w-lg mx-auto mt-4">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800" data-i18n="profile_title">Driver Profile Details</h3>
+                    <p class="text-xs text-gray-500" data-i18n="profile_subtitle">Complete or update your personal contact & address details</p>
+                </div>
+                <span class="px-2.5 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-semibold" id="profile-key-badge">Code Verified</span>
+            </div>
+            <form id="driver-profile-form" onsubmit="saveDriverProfile(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1" data-i18n="driver_name_label">Driver Full Name *</label>
+                    <input type="text" id="driver-name-input" required class="w-full px-3.5 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter your full name">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1" data-i18n="driver_phone_label">Mobile Phone Number *</label>
+                    <input type="tel" id="driver-phone-input" required class="w-full px-3.5 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="e.g. +966 5X XXX XXXX">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1" data-i18n="driver_address_label">Full Address / Assigned Zone *</label>
+                    <textarea id="driver-address-input" rows="3" required class="w-full px-3.5 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter your street, district, city, or zone"></textarea>
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button type="submit" id="save-profile-btn" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-lg hover:bg-blue-700 transition" data-i18n="save_profile_btn">Save & Continue</button>
+                    <button type="button" onclick="logoutDriver()" class="bg-gray-200 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-300 text-sm font-semibold" data-i18n="logout_btn">Logout</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 3. Pre-Trip Inspection & Shift View -->
         <div id="shift-view" class="hidden space-y-6">
             <div class="bg-white rounded-xl shadow-md p-6">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold text-gray-800" data-i18n="pretrip_title">Pre-Trip Vehicle Inspection & Clock-In</h3>
-                    <span id="shift-status-badge" class="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full font-semibold">Offline</span>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800" data-i18n="pretrip_title">Pre-Trip Vehicle Inspection & Clock-In</h3>
+                        <p class="text-xs text-gray-500" id="shift-driver-summary">Driver: --</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button type="button" onclick="openEditProfile()" class="text-blue-600 hover:underline text-xs font-semibold"><i class="fa-solid fa-user-pen mr-1"></i>Edit Profile</button>
+                        <span id="shift-status-badge" class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full font-semibold">Offline</span>
+                    </div>
                 </div>
                 <form id="shift-form" onsubmit="startShift(event)" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -76,22 +118,28 @@
                             <label class="flex items-center space-x-2"><input type="checkbox" required class="rounded text-blue-600"> <span data-i18n="check_cold">Cold-Chain Refrigerator Temp OK</span></label>
                         </div>
                     </div>
-                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-700 transition" data-i18n="clock_in_btn">Start Shift & Clock-In</button>
+                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-2.5 rounded-lg hover:bg-green-700 transition" data-i18n="clock_in_btn">Start Shift & Clock-In</button>
                 </form>
             </div>
         </div>
 
-        <!-- Active Dashboard / Manifest View -->
+        <!-- 4. Active Dashboard / Manifest View -->
         <div id="dashboard-view" class="hidden space-y-6">
-            <!-- Header bar with shift controls -->
-            <div class="bg-white rounded-xl shadow-md p-4 flex justify-between items-center">
+            <!-- Driver Identity & Shift Control Header -->
+            <div class="bg-white rounded-xl shadow-md p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <div>
-                    <h4 class="font-bold text-gray-800" id="driver-welcome-name">Driver Dashboard</h4>
-                    <p class="text-xs text-gray-500" id="active-vehicle-info">Vehicle: -- | Shift Active</p>
+                    <div class="flex items-center space-x-2">
+                        <h4 class="font-bold text-gray-800" id="driver-welcome-name">Driver Dashboard</h4>
+                        <button onclick="openEditProfile()" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-0.5 rounded font-semibold">
+                            <i class="fa-solid fa-pen-to-square mr-1"></i><span data-i18n="edit_profile_btn">My Details</span>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-0.5" id="driver-contact-subline">Phone: -- | Address: --</p>
+                    <p class="text-xs text-green-600 font-semibold mt-0.5" id="active-vehicle-info">Vehicle: -- | Shift Active</p>
                 </div>
-                <div class="space-x-2">
-                    <button onclick="toggleBreak()" id="break-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm" data-i18n="break_btn">Take Break</button>
-                    <button onclick="clockOut()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm" data-i18n="clock_out_btn">Clock Out</button>
+                <div class="flex space-x-2">
+                    <button onclick="toggleBreak()" id="break-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded text-sm font-semibold" data-i18n="break_btn">Take Break</button>
+                    <button onclick="clockOut()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-semibold" data-i18n="clock_out_btn">Clock Out</button>
                 </div>
             </div>
 
@@ -113,7 +161,6 @@
                     <button onclick="loadManifest()" class="text-blue-600 hover:text-blue-800 text-sm font-semibold"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
                 </div>
                 <div id="deliveries-list" class="space-y-4">
-                    <!-- Populated dynamically via driver.js -->
                     <p class="text-gray-500 text-center py-6" data-i18n="loading_manifest">Loading assigned deliveries...</p>
                 </div>
             </div>
