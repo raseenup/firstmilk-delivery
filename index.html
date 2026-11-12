@@ -1,394 +1,203 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>First Milk — Driver Portal</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-    .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First Milk Venture - Driver Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        .rtl { direction: rtl; }
+    </style>
 </head>
-<body class="text-slate-800 antialiased bg-slate-100 pb-24">
-
-    <!-- DELETE THIS ENTIRE DIV FROM driver.html -->
-  <div class="bg-slate-900 text-white px-4 py-2 sticky top-0 z-50 text-xs flex justify-between items-center shadow">
-    <span class="font-bold text-emerald-400">First Milk Driver Portal</span>
-    <div class="space-x-2">
-      <a href="driver.html" class="underline font-bold text-blue-400">Driver</a>
-      <a href="customer.html" class="hover:underline text-slate-300">Customer</a>
-      <a href="admin.html" class="hover:underline text-slate-300">Admin</a>
-    </div>
-  </div>
-
-  <div class="max-w-md mx-auto min-h-screen bg-slate-100 relative shadow-xl">
-    
-    <!-- Header -->
-    <header class="bg-[#1d5bd6] text-white px-4 py-3.5 flex items-center justify-between shadow-sm sticky top-[37px] z-40">
-      <div class="flex items-center gap-2">
-        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 17h8M8 17a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 104 0 2 2 0 00-4 0zM3 9h13l4 4v4h-2m-15-8v8h1m12-8V5a1 1 0 00-1-1H4a1 1 0 00-1 1v4"/></svg>
-        <span class="font-bold text-base">First Milk Driver</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <select id="lang-select" onchange="changeLang(this.value)" class="bg-[#1647a8] text-white text-xs font-medium px-2 py-1 rounded border border-blue-400/30">
-          <option value="en">English</option>
-          <option value="ar">العربية</option>
-          <option value="ml">മലയാളം</option>
-          <option value="hi">हिन्दी</option>
-        </select>
-        <button onclick="triggerSOS()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow">
-          <span>▲</span> SOS
-        </button>
-      </div>
-    </header>
-
-    <!-- TAB 1: WORKING TIME -->
-    <section id="tab-time" class="p-4 space-y-4">
-      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-        <div class="flex items-center justify-between mb-1">
-          <div class="flex items-center gap-2">
-            <h2 class="text-lg font-bold text-slate-900" id="driver-name-disp">Raseen</h2>
-            <button onclick="switchTab('profile')" class="bg-blue-50 text-blue-600 text-xs font-semibold px-2 py-0.5 rounded-md">✎ My Details</button>
-          </div>
-          <span id="shift-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">Shift Active</span>
+<body class="bg-gray-100 font-sans antialiased">
+    <!-- Top Navbar -->
+    <nav class="bg-blue-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-truck-fast text-2xl"></i>
+                <span class="font-bold text-xl">First Milk Driver</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <select id="lang-switcher" onchange="switchLanguage(this.value)" class="bg-blue-700 text-white text-sm rounded px-2 py-1 border border-blue-500">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="ur">اردو</option>
+                    <option value="tl">Tagalog</option>
+                </select>
+                <button onclick="triggerSOS()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-bold animate-pulse">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> SOS
+                </button>
+            </div>
         </div>
-        <p class="text-xs text-slate-500 mb-1">Phone: <span id="driver-phone-disp">8086002624</span> | Address: <span id="driver-city-disp">JEDDAH</span></p>
-        <p class="text-xs font-semibold text-emerald-600 mb-4">Vehicle: <span id="driver-veh-disp">KSA-4821-JED</span> | <span id="shift-status-txt">Clocked In</span></p>
-
-        <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/60 mb-4">
-          <div>
-            <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold block">Active Work Time</span>
-            <span id="work-timer" class="text-xl font-extrabold text-slate-800 font-mono">01:30:20</span>
-          </div>
-          <div>
-            <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold block">Break Duration</span>
-            <span id="break-timer" class="text-xl font-extrabold text-amber-600 font-mono">00:15:00</span>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <button id="btn-break" onclick="toggleBreak()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-4 rounded-xl text-sm shadow">Take Break</button>
-          <button id="btn-clock" onclick="toggleClock()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm shadow">Clock Out</button>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="font-bold text-sm text-slate-800">Today's Working & Break Logs</h3>
-          <span class="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Synced to Admin</span>
-        </div>
-        <div id="time-logs-list" class="space-y-2.5 max-h-60 overflow-y-auto"></div>
-      </div>
-    </section>
-
-    <!-- TAB 2: MANIFEST -->
-    <section id="tab-manifest" class="p-4 space-y-4 hidden">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900">Daily Delivery Manifest</h2>
-          <p class="text-xs text-slate-500">Pending orders requiring OTP & ePOD verification</p>
-        </div>
-        <button onclick="renderDriverApp()" class="text-blue-600 text-xs font-bold bg-blue-50 px-3 py-1.5 rounded-lg">↻ Refresh</button>
-      </div>
-      <div id="driver-manifest-list" class="space-y-3"></div>
-    </section>
-
-    <!-- TAB 3: DELIVERED -->
-    <section id="tab-delivered" class="p-4 space-y-4 hidden">
-      <div>
-        <h2 class="text-lg font-bold text-slate-900">Delivered Successful Orders</h2>
-        <p class="text-xs text-slate-500">Verified via customer 4-digit OTP and doorstep photo proof</p>
-      </div>
-      <div id="driver-delivered-list" class="space-y-3"></div>
-    </section>
-
-    <!-- TAB 4: CASH FLOW -->
-    <section id="tab-cashflow" class="p-4 space-y-4 hidden">
-      <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-5 text-white shadow-md flex items-center justify-between">
-        <div>
-          <p class="text-[11px] font-bold uppercase tracking-wider text-blue-100">DAILY CASH COLLECTION (COD)</p>
-          <p class="text-2xl font-extrabold mt-1">SAR <span id="cf-cod-total">0.00</span></p>
-          <p class="text-xs text-blue-200 mt-1">Net Cash in Hand: SAR <span id="cf-net-total">0.00</span></p>
-        </div>
-        <button onclick="openExpenseModal()" class="bg-white text-blue-700 hover:bg-blue-50 font-bold text-xs px-3.5 py-2.5 rounded-xl shadow flex items-center gap-1.5">
-          <span>🧾</span> Log Expense
-        </button>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div class="bg-white p-3.5 rounded-xl border border-slate-200">
-          <span class="text-xs text-slate-500 block">Total COD Collected</span>
-          <span class="text-base font-extrabold text-emerald-600">+ SAR <span id="cf-cod-sub">0.00</span></span>
-        </div>
-        <div class="bg-white p-3.5 rounded-xl border border-slate-200">
-          <span class="text-xs text-slate-500 block">Total Expenses</span>
-          <span class="text-base font-extrabold text-red-600">- SAR <span id="cf-exp-sub">0.00</span></span>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-        <h3 class="font-bold text-sm text-slate-800 mb-3">Collections & Expenses Ledger</h3>
-        <div id="cashflow-ledger" class="space-y-2.5"></div>
-      </div>
-    </section>
-
-    <!-- TAB 5: PROFILE -->
-    <section id="tab-profile" class="p-4 space-y-4 hidden">
-      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
-        <div class="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100">
-          <div class="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-extrabold">R</div>
-          <div>
-            <h2 class="text-lg font-bold text-slate-900" id="prof-name-title">Raseen</h2>
-            <p class="text-xs text-slate-500">First Milk Delivery Partner • Jeddah Zone</p>
-          </div>
-        </div>
-        <form onsubmit="saveProfile(event)" class="space-y-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Full Name</label>
-            <input type="text" id="p-name" value="Raseen" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" required />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Contact Number</label>
-            <input type="text" id="p-phone" value="8086002624" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" required />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Assigned City</label>
-            <input type="text" id="p-city" value="JEDDAH" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" required />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Vehicle Plate Number</label>
-            <input type="text" id="p-veh" value="KSA-4821-JED" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" />
-          </div>
-          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-sm mt-2">Save Driver Details</button>
-        </form>
-      </div>
-    </section>
-
-    <!-- 5-Tab Bottom Navigation Bar -->
-    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-slate-200 px-2 py-2 flex items-center justify-around z-40 safe-bottom shadow-lg">
-      <button onclick="switchTab('time')" id="nav-time" class="flex flex-col items-center gap-1 text-red-600 font-bold text-[11px] flex-1">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span>Working Time</span>
-      </button>
-      <button onclick="switchTab('manifest')" id="nav-manifest" class="flex flex-col items-center gap-1 text-slate-500 font-medium text-[11px] flex-1 relative">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        <span>Manifest</span>
-        <span id="manifest-badge" class="absolute -top-1 right-2 bg-blue-600 text-white text-[9px] font-bold px-1.5 rounded-full">3</span>
-      </button>
-      <button onclick="switchTab('delivered')" id="nav-delivered" class="flex flex-col items-center gap-1 text-slate-500 font-medium text-[11px] flex-1">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span>Delivered</span>
-      </button>
-      <button onclick="switchTab('cashflow')" id="nav-cashflow" class="flex flex-col items-center gap-1 text-slate-500 font-medium text-[11px] flex-1">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-        <span>Cash Flow</span>
-      </button>
-      <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center gap-1 text-slate-500 font-medium text-[11px] flex-1">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-        <span>Profile</span>
-      </button>
     </nav>
-  </div>
 
-  <!-- ePOD Modal -->
-  <div id="epod-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
-      <h3 class="text-lg font-extrabold text-slate-900 mb-2">Electronic Proof of Delivery (ePOD)</h3>
-      <div id="epod-banner" class="bg-blue-50 text-blue-900 text-xs font-bold p-2.5 rounded-xl mb-3"></div>
-      <form onsubmit="confirmDelivery(event)" class="space-y-3">
-        <input type="hidden" id="epod-id" />
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Doorstep Photo Proof *</label>
-          <input type="file" id="epod-img" accept="image/*" required class="w-full text-xs border border-slate-200 rounded-xl p-1 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:bg-slate-100 file:border-0 file:text-xs file:font-semibold" />
+    <!-- Main Container -->
+    <div class="max-w-4xl mx-auto px-4 py-6">
+        
+        <!-- 1. Strict Unique Secret Code Login View -->
+        <div id="login-view" class="bg-white rounded-xl shadow-md p-6 max-w-md mx-auto mt-8">
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-key text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800" data-i18n="login_title">Driver Portal Login</h2>
+                <p class="text-xs text-gray-500 mt-1" data-i18n="login_subtitle">Enter the unique secret code issued to you by the Admin Portal</p>
+            </div>
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-semibold mb-2" data-i18n="driver_key_label">Unique Driver Secret Code</label>
+                    <input type="password" id="driver-key-input" required class="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your admin-assigned secret code">
+                </div>
+                <p id="login-error-msg" class="hidden text-red-600 text-xs font-semibold"></p>
+                <button type="submit" id="login-submit-btn" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-lg hover:bg-blue-700 transition" data-i18n="login_btn">Verify & Access Portal</button>
+            </form>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Unique 4-Digit Delivery OTP *</label>
-          <input type="text" id="epod-otp" maxlength="4" placeholder="Enter customer's 4-digit OTP" required class="w-full px-3 py-2 text-sm font-mono tracking-widest border border-slate-300 rounded-xl" />
-          <p id="epod-err" class="text-xs text-red-600 font-semibold mt-1 hidden">Invalid OTP! Verify with customer.</p>
+
+        <!-- 2. Driver Personal Details View (Name, Phone Number, Address) -->
+        <div id="profile-view" class="hidden bg-white rounded-xl shadow-md p-6 max-w-lg mx-auto mt-4">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800" data-i18n="profile_title">Driver Profile Details</h3>
+                    <p class="text-xs text-gray-500" data-i18n="profile_subtitle">Complete or update your personal contact & address details</p>
+                </div>
+                <span class="px-2.5 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-semibold" id="profile-key-badge">Code Verified</span>
+            </div>
+            <form id="driver-profile-form" onsubmit="saveDriverProfile(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1" data-i18n="driver_name_label">Driver Full Name *</label>
+                    <input type="text" id="driver-name-input" required class="w-full px-3.5 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter your full name">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1" data-i18n="driver_phone_label">Mobile Phone Number *</label>
+                    <input type="tel" id="driver-phone-input" required class="w-full px-3.5 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="e.g. +966 5X XXX XXXX">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1" data-i18n="driver_address_label">Full Address / Assigned Zone *</label>
+                    <textarea id="driver-address-input" rows="3" required class="w-full px-3.5 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter your street, district, city, or zone"></textarea>
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button type="submit" id="save-profile-btn" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-lg hover:bg-blue-700 transition" data-i18n="save_profile_btn">Save & Continue</button>
+                    <button type="button" onclick="logoutDriver()" class="bg-gray-200 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-300 text-sm font-semibold" data-i18n="logout_btn">Logout</button>
+                </div>
+            </form>
         </div>
-        <div class="flex gap-2 pt-2">
-          <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs">Confirm Delivery</button>
-          <button type="button" onclick="closeEpod()" class="px-4 bg-slate-100 font-bold py-2.5 rounded-xl text-xs">Cancel</button>
+
+        <!-- 3. Pre-Trip Inspection & Shift View -->
+        <div id="shift-view" class="hidden space-y-6">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800" data-i18n="pretrip_title">Pre-Trip Vehicle Inspection & Clock-In</h3>
+                        <p class="text-xs text-gray-500" id="shift-driver-summary">Driver: --</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button type="button" onclick="openEditProfile()" class="text-blue-600 hover:underline text-xs font-semibold"><i class="fa-solid fa-user-pen mr-1"></i>Edit Profile</button>
+                        <span id="shift-status-badge" class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full font-semibold">Offline</span>
+                    </div>
+                </div>
+                <form id="shift-form" onsubmit="startShift(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1" data-i18n="vehicle_plate">Vehicle Plate Number</label>
+                            <input type="text" id="vehicle-plate" required class="w-full px-3 py-2 border rounded-lg" placeholder="e.g. ABC-1234">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1" data-i18n="odometer_start">Starting Odometer (KM)</label>
+                            <input type="number" id="odometer-start" required class="w-full px-3 py-2 border rounded-lg" placeholder="e.g. 45000">
+                        </div>
+                    </div>
+                    <div class="border-t pt-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2" data-i18n="checklist_label">Mandatory Safety Checklist</label>
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <label class="flex items-center space-x-2"><input type="checkbox" required class="rounded text-blue-600"> <span data-i18n="check_tires">Tires & Pressure OK</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" required class="rounded text-blue-600"> <span data-i18n="check_brakes">Brakes Functioning</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" required class="rounded text-blue-600"> <span data-i18n="check_fuel">Fuel / Battery Level Adequate</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" required class="rounded text-blue-600"> <span data-i18n="check_cold">Cold-Chain Refrigerator Temp OK</span></label>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-2.5 rounded-lg hover:bg-green-700 transition" data-i18n="clock_in_btn">Start Shift & Clock-In</button>
+                </form>
+            </div>
         </div>
-      </form>
+
+        <!-- 4. Active Dashboard / Manifest View -->
+        <div id="dashboard-view" class="hidden space-y-6">
+            <!-- Driver Identity & Shift Control Header -->
+            <div class="bg-white rounded-xl shadow-md p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <h4 class="font-bold text-gray-800" id="driver-welcome-name">Driver Dashboard</h4>
+                        <button onclick="openEditProfile()" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-0.5 rounded font-semibold">
+                            <i class="fa-solid fa-pen-to-square mr-1"></i><span data-i18n="edit_profile_btn">My Details</span>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-0.5" id="driver-contact-subline">Phone: -- | Address: --</p>
+                    <p class="text-xs text-green-600 font-semibold mt-0.5" id="active-vehicle-info">Vehicle: -- | Shift Active</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="toggleBreak()" id="break-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded text-sm font-semibold" data-i18n="break_btn">Take Break</button>
+                    <button onclick="clockOut()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-semibold" data-i18n="clock_out_btn">Clock Out</button>
+                </div>
+            </div>
+
+            <!-- Financial & COD Reconciliation Card -->
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl shadow-md p-5 text-white flex justify-between items-center">
+                <div>
+                    <p class="text-xs uppercase tracking-wider text-blue-200" data-i18n="cod_summary_title">Daily Cash Collection (COD)</p>
+                    <h3 class="text-2xl font-bold mt-1" id="total-cod-collected">SAR 0.00</h3>
+                </div>
+                <button onclick="openExpenseModal()" class="bg-white text-blue-700 px-3 py-2 rounded-lg text-sm font-semibold shadow hover:bg-blue-50">
+                    <i class="fa-solid fa-receipt mr-1"></i> <span data-i18n="log_expense_btn">Log Expense</span>
+                </button>
+            </div>
+
+            <!-- Manifest Queue -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-800" data-i18n="manifest_title">Daily Delivery Manifest</h3>
+                    <button onclick="loadManifest()" class="text-blue-600 hover:text-blue-800 text-sm font-semibold"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
+                </div>
+                <div id="deliveries-list" class="space-y-4">
+                    <p class="text-gray-500 text-center py-6" data-i18n="loading_manifest">Loading assigned deliveries...</p>
+                </div>
+            </div>
+        </div>
+
     </div>
-  </div>
 
-  <!-- Expense Modal -->
-  <div id="expense-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl">
-      <h3 class="text-base font-extrabold text-slate-900 mb-3">Log Driver Expense</h3>
-      <form onsubmit="saveExpense(event)" class="space-y-3">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Expense Title</label>
-          <input type="text" id="exp-title" placeholder="e.g., Fuel Refill" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" />
+    <!-- ePOD Modal -->
+    <div id="epod-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-xl font-bold text-gray-800" data-i18n="epod_title">Electronic Proof of Delivery (ePOD)</h3>
+                <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded font-semibold">Required Fields *</span>
+            </div>
+            <div id="epod-order-info" class="text-sm font-semibold text-gray-700 bg-blue-50 p-2.5 rounded-lg"></div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1"><span data-i18n="photo_proof">Doorstep Photo Proof</span> <span class="text-red-600">*</span></label>
+                <input type="file" id="epod-photo-file" accept="image/*" capture="environment" onchange="previewEPODPhoto(event)" required class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <img id="epod-photo-preview" class="hidden mt-2 h-28 w-full object-cover rounded-lg border" alt="Doorstep Proof Preview">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1"><span data-i18n="customer_pin">Unique Order Delivery OTP (4-Digit)</span> <span class="text-red-600">*</span></label>
+                <input type="text" id="epod-otp" maxlength="6" inputmode="numeric" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 tracking-widest font-mono text-lg" placeholder="Enter customer's unique 4-digit OTP">
+                <p id="epod-otp-hint" class="text-xs text-gray-400 mt-1"></p>
+            </div>
+
+            <p id="epod-error-msg" class="hidden text-red-600 text-xs font-bold bg-red-50 p-2 rounded border border-red-200"></p>
+
+            <div class="flex space-x-3 pt-2">
+                <button type="button" id="confirm-delivery-btn" onclick="submitEPOD('Delivered')" class="flex-1 bg-green-600 text-white font-bold py-2.5 rounded-lg hover:bg-green-700 transition" data-i18n="confirm_delivery">Confirm Delivery</button>
+                <button type="button" onclick="closeEPODModal()" class="bg-gray-300 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-400 font-semibold" data-i18n="cancel_btn">Cancel</button>
+            </div>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Amount (SAR)</label>
-          <input type="number" step="0.01" id="exp-amt" placeholder="45.00" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" />
-        </div>
-        <div class="flex gap-2 pt-2">
-          <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-xl text-sm">Save Expense</button>
-          <button type="button" onclick="closeExpenseModal()" class="px-4 bg-slate-100 font-bold py-2 rounded-xl text-sm">Cancel</button>
-        </div>
-      </form>
     </div>
-  </div>
 
-  <script src="app-core.js"></script>
-  <script>
-    function switchTab(tab) {
-      ['time', 'manifest', 'delivered', 'cashflow', 'profile'].forEach(t => {
-        document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
-        const nav = document.getElementById(`nav-${t}`);
-        nav.className = t === tab
-          ? "flex flex-col items-center gap-1 text-red-600 font-bold text-[11px] flex-1 relative"
-          : "flex flex-col items-center gap-1 text-slate-500 font-medium text-[11px] flex-1 relative";
-      });
-    }
-
-    function renderDriverApp() {
-      const orders = getOrders();
-      const pending = orders.filter(o => o.status === 'pending');
-      const delivered = orders.filter(o => o.status === 'delivered');
-      
-      document.getElementById('manifest-badge').textContent = pending.length;
-
-      // Time Logs
-      const logs = getLogs();
-      document.getElementById('time-logs-list').innerHTML = logs.map(l => `
-        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-xs">
-          <div>
-            <span class="font-bold ${l.type.includes('Break') ? 'text-amber-600' : 'text-slate-800'}">${l.type}</span>
-            <span class="text-slate-500 block text-[11px]">${l.start} → ${l.end}</span>
-          </div>
-          <span class="font-semibold text-slate-600 bg-white px-2 py-1 rounded-md border">${l.duration}</span>
-        </div>
-      `).join("");
-
-      // Manifest
-      document.getElementById('driver-manifest-list').innerHTML = pending.length === 0
-        ? `<div class="bg-white p-6 rounded-2xl text-center text-xs text-slate-500">All orders delivered for today!</div>`
-        : pending.map(o => `
-          <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-2.5">
-            <div class="flex items-center justify-between">
-              <span class="text-base font-extrabold text-blue-700">Order #${o.id}</span>
-              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${o.orderType === 'Subscribed' ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-800'}">${o.orderType}</span>
-            </div>
-            <div class="text-xs space-y-1 text-slate-700">
-              <p><span class="font-semibold text-slate-500">Customer:</span> <span class="font-bold text-slate-900">${o.customerName}</span></p>
-              <p><span class="font-semibold text-slate-500">Contact:</span> <a href="tel:${o.contactNumber}" class="text-blue-600 font-semibold underline">${o.contactNumber}</a></p>
-              <p><span class="font-semibold text-slate-500">Product:</span> <span class="font-bold">${o.productName}</span> (Qty: <span class="font-bold">${o.quantity}</span>)</p>
-              <p><span class="font-semibold text-slate-500">Location:</span> ${o.location}</p>
-              <p><span class="font-semibold text-slate-500">Payment:</span> <span class="font-bold ${o.codAmount > 0 ? 'text-red-600' : 'text-emerald-600'}">${o.paymentStatus} ${o.codAmount > 0 ? `(SAR ${o.codAmount.toFixed(2)})` : ''}</span></p>
-            </div>
-            <div class="pt-2 flex gap-2">
-              <button onclick="openEpod(${o.id})" class="flex-1 bg-[#1d5bd6] hover:bg-blue-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs">Update Status / ePOD</button>
-              <a href="https://maps.google.com/?q=${encodeURIComponent(o.location)}" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2.5 rounded-xl text-xs">📍</a>
-            </div>
-          </div>
-        `).join("");
-
-      // Delivered
-      document.getElementById('driver-delivered-list').innerHTML = delivered.length === 0
-        ? `<div class="bg-white p-6 rounded-2xl text-center text-xs text-slate-500">No delivered orders yet today.</div>`
-        : delivered.map(o => `
-          <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-200 space-y-1.5 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="font-extrabold text-slate-900 text-sm">Order #${o.id} — ${o.customerName}</span>
-              <span class="bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full text-[11px]">✓ Delivered</span>
-            </div>
-            <p class="text-slate-600">${o.productName} × ${o.quantity} • <span class="font-semibold">${o.orderType}</span></p>
-            <p class="text-slate-500">Location: ${o.location}</p>
-            <div class="flex items-center justify-between pt-1 text-[11px] text-slate-500 border-t border-slate-100">
-              <span>Verified OTP: <strong class="font-mono text-slate-800">${o.otp}</strong></span>
-              <span>Time: ${o.deliveredAt}</span>
-            </div>
-          </div>
-        `).join("");
-
-      // Cash Flow
-      const ledger = getLedger();
-      const totalCod = ledger.filter(c => c.type === 'cod').reduce((s, c) => s + c.amount, 0);
-      const totalExp = ledger.filter(c => c.type === 'expense').reduce((s, c) => s + c.amount, 0);
-      document.getElementById('cf-cod-total').textContent = totalCod.toFixed(2);
-      document.getElementById('cf-net-total').textContent = (totalCod - totalExp).toFixed(2);
-      document.getElementById('cf-cod-sub').textContent = totalCod.toFixed(2);
-      document.getElementById('cf-exp-sub').textContent = totalExp.toFixed(2);
-
-      document.getElementById('cashflow-ledger').innerHTML = ledger.map(item => `
-        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-          <div>
-            <span class="font-bold text-slate-800 block">${item.title}</span>
-            <span class="text-[11px] text-slate-400">${item.time}</span>
-          </div>
-          <span class="font-extrabold ${item.type === 'cod' ? 'text-emerald-600' : 'text-red-600'}">
-            ${item.type === 'cod' ? '+' : '-'} SAR ${item.amount.toFixed(2)}
-          </span>
-        </div>
-      `).join("");
-    }
-
-    function openEpod(id) {
-      const orders = getOrders();
-      const o = orders.find(x => x.id === id);
-      if (!o) return;
-      document.getElementById('epod-id').value = o.id;
-      document.getElementById('epod-banner').textContent = `Order #${o.id} | COD Due: SAR ${o.codAmount.toFixed(2)}`;
-      document.getElementById('epod-otp').value = '';
-      document.getElementById('epod-err').classList.add('hidden');
-      document.getElementById('epod-modal').classList.remove('hidden');
-      document.getElementById('epod-modal').classList.add('flex');
-    }
-    function closeEpod() {
-      document.getElementById('epod-modal').classList.add('hidden');
-    }
-    function confirmDelivery(e) {
-      e.preventDefault();
-      const id = Number(document.getElementById('epod-id').value);
-      const otp = document.getElementById('epod-otp').value.trim();
-      const orders = getOrders();
-      const o = orders.find(x => x.id === id);
-      if (!o || otp !== o.otp) {
-        document.getElementById('epod-err').classList.remove('hidden');
-        return;
-      }
-      o.status = 'delivered';
-      o.deliveredAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      if (o.codAmount > 0) {
-        o.paymentStatus = 'Paid (COD Collected)';
-        addLedgerItem({ type: 'cod', title: `Order #${o.id} COD (${o.customerName})`, amount: o.codAmount, time: o.deliveredAt });
-      }
-      saveOrders(orders);
-      closeEpod();
-      renderDriverApp();
-    }
-
-    function openExpenseModal() { document.getElementById('expense-modal').classList.remove('hidden'); document.getElementById('expense-modal').classList.add('flex'); }
-    function closeExpenseModal() { document.getElementById('expense-modal').classList.add('hidden'); }
-    function saveExpense(e) {
-      e.preventDefault();
-      const title = document.getElementById('exp-title').value;
-      const amount = parseFloat(document.getElementById('exp-amt').value);
-      if (title && amount > 0) {
-        addLedgerItem({ type: 'expense', title, amount, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-        document.getElementById('exp-title').value = '';
-        document.getElementById('exp-amt').value = '';
-        closeExpenseModal();
-        renderDriverApp();
-      }
-    }
-
-    function saveProfile(e) {
-      e.preventDefault();
-      alert("Driver details saved successfully!");
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      renderDriverApp();
-    });
-  </script>
+    <script src="driver.js"></script>
 </body>
 </html>
