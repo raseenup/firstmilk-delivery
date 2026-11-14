@@ -458,7 +458,7 @@ function renderManifest(orders) {
                 <p class="text-sm text-gray-700"><i class="fa-solid fa-location-dot mr-1 text-red-500"></i> ${d.user_email || d.address || 'Customer Address'}</p>
                 <p class="text-xs text-gray-500">${d.items_summary || ('Qty: ' + (d.quantity || 1))}</p>
                 <div class="flex justify-between items-center pt-1">
-                    <p class="text-sm font-bold text-gray-900">COD Due: SAR ${cod.toFixed(2)}</p>
+                    <p class="text-sm font-bold text-gray-900">COD Due: ₹${cod.toFixed(2)}</p>
                     <span class="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Order OTP Ref: #${uniqueOtp}</span>
                 </div>
                 ${actionArea}
@@ -466,7 +466,7 @@ function renderManifest(orders) {
         `;
     }).join("");
 
-    document.getElementById("total-cod-collected").innerText = `SAR ${totalCod.toFixed(2)}`;
+    document.getElementById("total-cod-collected").innerText = `₹${totalCod.toFixed(2)}`;
 }
 
 async function loadManifest() {
@@ -523,7 +523,7 @@ function openEPODModal(orderId, cod, expectedOtp) {
 
     document.getElementById("epod-otp").value = "";
     document.getElementById("epod-error-msg").classList.add("hidden");
-    document.getElementById("epod-order-info").innerText = `Order: #${orderId} | COD to Collect: SAR ${parseFloat(cod).toFixed(2)}`;
+    document.getElementById("epod-order-info").innerText = `Order: #${orderId} | COD to Collect: ₹${parseFloat(cod).toFixed(2)}`;
     document.getElementById("epod-otp-hint").innerText = `Ask customer for their unique 4-digit PIN (Demo/Test OTP for #${orderId}: ${targetOrderExpectedOtp})`;
     document.getElementById("epod-modal").classList.remove("hidden");
 }
@@ -673,7 +673,7 @@ async function triggerSOS() {
 }
 
 async function openExpenseModal() {
-    const amount = prompt("Enter expense amount in SAR (e.g. Fuel / Toll):");
+    const amount = prompt("Enter expense amount in ₹(e.g. Fuel / Toll):");
     if (amount && !isNaN(parseFloat(amount))) {
         try {
             await fetch(`${API_BASE}/driver/expenses`, {
@@ -685,6 +685,6 @@ async function openExpenseModal() {
                 body: JSON.stringify({ category: "Fuel/Toll", amount: parseFloat(amount) })
             });
         } catch (err) {}
-        alert(`Successfully logged expense of SAR ${amount} for reimbursement.`);
+        alert(`Successfully logged expense of ₹${amount} for reimbursement.`);
     }
 }

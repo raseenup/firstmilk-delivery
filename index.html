@@ -44,8 +44,8 @@
           </div>
           <span id="shift-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">Shift Active</span>
         </div>
-        <p class="text-xs text-slate-500 mb-1">Phone: <span id="driver-phone-disp">8086002624</span> | Address: <span id="driver-city-disp">JEDDAH</span></p>
-        <p class="text-xs font-semibold text-emerald-600 mb-4">Vehicle: <span id="driver-veh-disp">KSA-4821-JED</span> | <span id="shift-status-txt">Clocked In</span></p>
+        <p class="text-xs text-slate-500 mb-1">Phone: <span id="driver-phone-disp">8086002624</span> | Address: <span id="driver-city-disp">KERALA, INDIA</span></p>
+        <p class="text-xs font-semibold text-emerald-600 mb-4">Vehicle: <span id="driver-veh-disp">KL-07-FMV-4821</span> | <span id="shift-status-txt">Clocked In</span></p>
 
         <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/60 mb-4">
           <div>
@@ -99,8 +99,8 @@
       <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-5 text-white shadow-md flex items-center justify-between">
         <div>
           <p class="text-[11px] font-bold uppercase tracking-wider text-blue-100">DAILY CASH COLLECTION (COD)</p>
-          <p class="text-2xl font-extrabold mt-1">SAR <span id="cf-cod-total">0.00</span></p>
-          <p class="text-xs text-blue-200 mt-1">Net Cash in Hand: SAR <span id="cf-net-total">0.00</span></p>
+          <p class="text-2xl font-extrabold mt-1">₹<span id="cf-cod-total">0.00</span></p>
+          <p class="text-xs text-blue-200 mt-1">Net Cash in Hand: ₹<span id="cf-net-total">0.00</span></p>
         </div>
         <button onclick="openExpenseModal()" class="bg-white text-blue-700 hover:bg-blue-50 font-bold text-xs px-3.5 py-2.5 rounded-xl shadow flex items-center gap-1.5">
           <span>🧾</span> Log Expense
@@ -110,11 +110,11 @@
       <div class="grid grid-cols-2 gap-3">
         <div class="bg-white p-3.5 rounded-xl border border-slate-200">
           <span class="text-xs text-slate-500 block">Total COD Collected</span>
-          <span class="text-base font-extrabold text-emerald-600">+ SAR <span id="cf-cod-sub">0.00</span></span>
+          <span class="text-base font-extrabold text-emerald-600">+ ₹<span id="cf-cod-sub">0.00</span></span>
         </div>
         <div class="bg-white p-3.5 rounded-xl border border-slate-200">
           <span class="text-xs text-slate-500 block">Total Expenses</span>
-          <span class="text-base font-extrabold text-red-600">- SAR <span id="cf-exp-sub">0.00</span></span>
+          <span class="text-base font-extrabold text-red-600">- ₹<span id="cf-exp-sub">0.00</span></span>
         </div>
       </div>
 
@@ -149,7 +149,7 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Vehicle Plate Number</label>
-            <input type="text" id="p-veh" value="KSA-4821-JED" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" />
+            <input type="text" id="p-veh" value="KL-07-FMV-4821" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl" />
           </div>
           <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-sm mt-2">Save Driver Details</button>
         </form>
@@ -272,7 +272,7 @@
               <p><span class="font-semibold text-slate-500">Contact:</span> <a href="tel:${o.contactNumber}" class="text-blue-600 font-semibold underline">${o.contactNumber}</a></p>
               <p><span class="font-semibold text-slate-500">Product:</span> <span class="font-bold">${o.productName}</span> (Qty: <span class="font-bold">${o.quantity}</span>)</p>
               <p><span class="font-semibold text-slate-500">Location:</span> ${o.location}</p>
-              <p><span class="font-semibold text-slate-500">Payment:</span> <span class="font-bold ${o.codAmount > 0 ? 'text-red-600' : 'text-emerald-600'}">${o.paymentStatus} ${o.codAmount > 0 ? `(SAR ${o.codAmount.toFixed(2)})` : ''}</span></p>
+              <p><span class="font-semibold text-slate-500">Payment:</span> <span class="font-bold ${o.codAmount > 0 ? 'text-red-600' : 'text-emerald-600'}">${o.paymentStatus} ${o.codAmount > 0 ? `(₹${o.codAmount.toFixed(2)})` : ''}</span></p>
             </div>
             <div class="pt-2 flex gap-2">
               <button onclick="openEpod(${o.id})" class="flex-1 bg-[#1d5bd6] hover:bg-blue-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs">Update Status / ePOD</button>
@@ -315,7 +315,7 @@
             <span class="text-[11px] text-slate-400">${item.time}</span>
           </div>
           <span class="font-extrabold ${item.type === 'cod' ? 'text-emerald-600' : 'text-red-600'}">
-            ${item.type === 'cod' ? '+' : '-'} SAR ${item.amount.toFixed(2)}
+            ${item.type === 'cod' ? '+' : '-'} ₹${item.amount.toFixed(2)}
           </span>
         </div>
       `).join("");
@@ -326,7 +326,7 @@
       const o = orders.find(x => x.id === id);
       if (!o) return;
       document.getElementById('epod-id').value = o.id;
-      document.getElementById('epod-banner').textContent = `Order #${o.id} | COD Due: SAR ${o.codAmount.toFixed(2)}`;
+      document.getElementById('epod-banner').textContent = `Order #${o.id} | COD Due: ₹${o.codAmount.toFixed(2)}`;
       document.getElementById('epod-otp').value = '';
       document.getElementById('epod-err').classList.add('hidden');
       document.getElementById('epod-modal').classList.remove('hidden');
