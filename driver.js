@@ -1,7 +1,7 @@
-const API_BASE = "https://backend.firstmilkventure.com";
-let currentDriverKey = localStorage.getItem("driver_key") || "";
-let activeShiftId = localStorage.getItem("shift_id") || null;
-let driverProfile = JSON.parse(localStorage.getItem("driver_profile") || "null");
+const API_BASE = window.FMV.apiBase;
+let currentDriverKey = "";
+let activeShiftId = null;
+let driverProfile = null;
 
 const translations = {
     en: {
@@ -384,7 +384,7 @@ async function startShift(e) {
     showDashboard();
 }
 
-let manifestOrders = JSON.parse(localStorage.getItem("driver_manifest_cache") || "null");
+let manifestOrders = [];
 
 function computeOrderOTP(orderId) {
     const str = String(orderId);
@@ -458,7 +458,7 @@ function renderManifest(orders) {
                 <p class="text-sm text-gray-700"><i class="fa-solid fa-location-dot mr-1 text-red-500"></i> ${d.user_email || d.address || 'Customer Address'}</p>
                 <p class="text-xs text-gray-500">${d.items_summary || ('Qty: ' + (d.quantity || 1))}</p>
                 <div class="flex justify-between items-center pt-1">
-                    <p class="text-sm font-bold text-gray-900">COD Due: ₹${cod.toFixed(2)}</p>
+                    <p class="text-sm font-bold text-gray-900">COD Due: SAR ${cod.toFixed(2)}</p>
                     <span class="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Order OTP Ref: #${uniqueOtp}</span>
                 </div>
                 ${actionArea}
@@ -466,7 +466,7 @@ function renderManifest(orders) {
         `;
     }).join("");
 
-    document.getElementById("total-cod-collected").innerText = `₹${totalCod.toFixed(2)}`;
+    document.getElementById("total-cod-collected").innerText = `SAR ${totalCod.toFixed(2)}`;
 }
 
 async function loadManifest() {
@@ -523,7 +523,7 @@ function openEPODModal(orderId, cod, expectedOtp) {
 
     document.getElementById("epod-otp").value = "";
     document.getElementById("epod-error-msg").classList.add("hidden");
-    document.getElementById("epod-order-info").innerText = `Order: #${orderId} | COD to Collect: ₹${parseFloat(cod).toFixed(2)}`;
+    document.getElementById("epod-order-info").innerText = `Order: #${orderId} | COD to Collect: SAR ${parseFloat(cod).toFixed(2)}`;
     document.getElementById("epod-otp-hint").innerText = `Ask customer for their unique 4-digit PIN (Demo/Test OTP for #${orderId}: ${targetOrderExpectedOtp})`;
     document.getElementById("epod-modal").classList.remove("hidden");
 }
@@ -673,7 +673,7 @@ async function triggerSOS() {
 }
 
 async function openExpenseModal() {
-    const amount = prompt("Enter expense amount in ₹(e.g. Fuel / Toll):");
+    const amount = prompt("Enter expense amount in SAR (e.g. Fuel / Toll):");
     if (amount && !isNaN(parseFloat(amount))) {
         try {
             await fetch(`${API_BASE}/driver/expenses`, {
@@ -685,6 +685,129 @@ async function openExpenseModal() {
                 body: JSON.stringify({ category: "Fuel/Toll", amount: parseFloat(amount) })
             });
         } catch (err) {}
-        alert(`Successfully logged expense of ₹${amount} for reimbursement.`);
+        alert(`Successfully logged expense of SAR ${amount} for reimbursement.`);
     }
 }
+
+// ============================================================================
+// v8 ACTIVE DRIVER CONTROLLERS. Server confirms shifts, routes, ePOD and cash.
+// Original translations, forms and feature source are retained above.
+// ============================================================================
+let fmvDriverShift=null,fmvDriverTab='work',fmvTimer=null;
+function computeOrderOTP(){return '';}
+function getDefaultOrders(){return [];}
+function handleLogin(e){e?.preventDefault();FMV.showAuth('signin');}
+function logoutDriver(){return FMV.logout();}
+function showProfileView(){selectDriverTab('profile');}
+function openEditProfile(){selectDriverTab('profile');}
+function showShiftView(){selectDriverTab('work');}
+function showDashboard(){selectDriverTab('work');refreshDriver();}
+function selectDriverTab(tab){
+  fmvDriverTab=tab;
+  document.getElementById('login-view').classList.add('hidden');
+  document.getElementById('profile-view').classList.toggle('hidden',tab!=='profile');
+  document.getElementById('shift-view').classList.toggle('hidden',tab!=='work' || !!fmvDriverShift);
+  document.getElementById('dashboard-view').classList.remove('hidden');
+  for(const key of ['work','manifest','delivered','cash'])document.getElementById('fmv-driver-'+key)?.classList.toggle('hidden',key!==tab);
+  for(const b of document.querySelectorAll('#fmv-driver-nav button'))b.setAttribute('aria-selected',String(b.dataset.tab===tab));
+  if(tab==='profile')updateProfileUI();
+}
+async function saveDriverProfile(e){e?.preventDefault();return FMV.guard(async()=>{
+  const result=await FMV.request('/driver/profile',{method:'POST',body:{name:FMV.val('driver-name-input'),phone:FMV.val('driver-phone-input'),address:FMV.val('driver-address-input')}});
+  driverProfile=result.driver;updateProfileUI();FMV.notice('Driver profile saved.');selectDriverTab('work');
+});}
+async function refreshDriver(){if(!FMV.user || FMV.user.portal!=='driver')return;return FMV.guard(async()=>{
+  const [profile,active,orders,cash,history]=await Promise.all([FMV.request('/driver/profile'),FMV.request('/driver/shifts/active'),FMV.request('/driver/deliveries'),FMV.request('/driver/reconciliation'),FMV.request('/driver/shifts')]);
+  driverProfile=profile.driver;fmvDriverShift=active.shift;activeShiftId=active.shift?.id || null;manifestOrders=orders;
+  updateProfileUI();renderManifest(orders);renderDriverShift();
+  document.getElementById('total-cod-collected').textContent=FMV.money(cash.total_cod_collected);
+  FMV.setHTML('fmv-cash-detail',`<div class="fmv-row"><span>Expenses</span><strong>${FMV.money(cash.total_expenses)}</strong></div><div class="fmv-row"><span>Cash to remit</span><strong>${FMV.money(cash.net_cash_to_remit)}</strong></div>`+cash.expenses.map(e=>`<div class="fmv-row"><span>${FMV.escape(e.category)}</span><strong>${FMV.money(e.amount)}</strong></div>`).join(''));
+  FMV.setHTML('fmv-work-logs',history.shifts.slice().reverse().map(sh=>`<div class="fmv-panel"><strong>${FMV.escape(sh.vehicle_plate)} · ${FMV.escape(sh.status)}</strong><p class="fmv-small">${FMV.escape(sh.clock_in)}<br>Work ${(sh.work_seconds/3600).toFixed(2)} h · Break ${(sh.break_duration_seconds/60).toFixed(0)} min</p>${sh.events.map(event=>`<p class="fmv-small">${FMV.escape(event.status)} · ${FMV.escape(event.at)}</p>`).join('')}</div>`).join('') || FMV.empty('Clock in to start your first working log.'));
+  selectDriverTab(fmvDriverTab);
+});}
+function renderDriverShift(){
+  const sh=fmvDriverShift,btn=document.getElementById('break-btn');
+  const vehicle=document.getElementById('active-vehicle-info');if(vehicle)vehicle.textContent=sh?'Vehicle: '+sh.vehicle_plate+' · '+(sh.status==='on_break'?'On break':'Shift active'):'No active shift';
+  if(btn)btn.textContent=sh?.status==='on_break'?'Resume work':'Take break';
+  document.getElementById('fmv-work-controls')?.classList.toggle('hidden',!sh);
+  const status=document.getElementById('shift-status-badge');if(status)status.textContent=sh?'Shift active':'Off duty';
+  clearInterval(fmvTimer);
+  if(sh){sh.syncedAt=Date.now();fmvTimer=setInterval(updateWorkTimers,1000);}updateWorkTimers();
+}
+function timeText(seconds){const n=Math.max(0,Math.floor(seconds));return [Math.floor(n/3600),Math.floor(n/60)%60,n%60].map(n=>String(n).padStart(2,'0')).join(':');}
+function updateWorkTimers(){const sh=fmvDriverShift,elapsed=sh?(Date.now()-sh.syncedAt)/1000:0;const work=(sh?.work_seconds || 0)+(sh?.status==='active'?elapsed:0),br=(sh?.break_duration_seconds || 0)+(sh?.status==='on_break'?elapsed:0);const w=document.getElementById('fmv-work-timer'),b=document.getElementById('fmv-break-timer');if(w)w.textContent=timeText(work);if(b)b.textContent=timeText(br);}
+async function startShift(e){e.preventDefault();if(!document.getElementById('shift-form').reportValidity())return;return FMV.guard(async()=>{
+  const checks=[...document.querySelectorAll('#shift-form input[type=checkbox]')];
+  await FMV.request('/driver/shifts/clock-in',{method:'POST',body:{vehicle_plate:FMV.val('vehicle-plate'),odometer_start:Number(FMV.val('odometer-start')),checklist_json:{tires:checks[0]?.checked===true,brakes:checks[1]?.checked===true,fuel:checks[2]?.checked===true,cold_chain:checks[3]?.checked===true}}});
+  FMV.notice('Shift started.');await refreshDriver();
+});}
+async function toggleBreak(){if(!fmvDriverShift)return;return FMV.guard(async()=>{await FMV.request('/driver/shifts/'+encodeURIComponent(fmvDriverShift.id),{method:'PATCH',body:{status:fmvDriverShift.status==='on_break'?'active':'on_break'}});refreshDriver();});}
+async function clockOut(){if(!fmvDriverShift)return;const raw=prompt('Closing odometer (km):',String(fmvDriverShift.odometer_start));if(raw===null)return;return FMV.guard(async()=>{const reading=Number(raw);if(!Number.isInteger(reading))throw new Error('Enter a whole-number odometer reading.');await FMV.request('/driver/shifts/'+encodeURIComponent(fmvDriverShift.id),{method:'PATCH',body:{status:'completed',odometer_end:reading}});FMV.notice('Shift completed and attendance saved.');refreshDriver();});}
+function driverOrderCard(o,delivered=false){
+  const e=FMV.escape;return `<div class="fmv-panel"><div class="fmv-row"><strong>${e(o.order_number)}</strong><span>${e(o.status)}</span></div><p>${e(o.customer_name)}</p><p class="fmv-small">${e(o.delivery_address)}<br>${e(o.customer_phone)}<br>${e(o.items_summary)}<br>${e(o.delivery_date)} · ${e(o.payment_status)}</p><div class="fmv-row"><strong>COD due: ${FMV.money(o.cod_amount)}</strong><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(o.delivery_address)}" target="_blank" rel="noopener noreferrer">Directions</a></div>${delivered?`<p class="fmv-small">Completed ${e(o.delivered_time)} · COD collected ${FMV.money(o.cod_collected)}</p>`:`<div class="fmv-flex"><button class="fmv-btn" onclick="openEPODModal('${e(o.id)}',${Number(o.cod_amount)})">Photo & customer PIN</button><button class="fmv-btn secondary" onclick="updateRouteStatus('${e(o.id)}')">Update status</button></div>`}</div>`;
+}
+function renderManifest(orders){
+  const pending=orders.filter(o=>!['Delivered','Cancelled','Failed'].includes(o.status)),complete=orders.filter(o=>['Delivered','Failed'].includes(o.status));
+  FMV.setHTML('deliveries-list',pending.map(o=>driverOrderCard(o)).join('') || FMV.empty('No pending deliveries are assigned to you.'));
+  FMV.setHTML('fmv-delivered-list',complete.map(o=>driverOrderCard(o,true)).join('') || FMV.empty('Completed and failed deliveries will appear here.'));
+  const count=document.getElementById('fmv-manifest-count');if(count)count.textContent=pending.length;
+}
+function loadManifest(){return refreshDriver();}
+function updateRouteStatus(id){return FMV.guard(async()=>{const status=prompt('New status: Picked Up, In Transit, Arrived or Failed','In Transit');if(!status)return;const failure_reason=status==='Failed'?prompt('Reason for failed delivery:') || '':'';await FMV.request('/driver/deliveries/'+encodeURIComponent(id)+'/epod',{method:'PATCH',body:{status,failure_reason}});refreshDriver();});}
+function openEPODModal(id,cod){
+  targetOrderId=id;targetOrderCod=Number(cod);selectedPhotoBase64='';
+  document.getElementById('epod-photo-file').value='';document.getElementById('epod-otp').value='';document.getElementById('epod-photo-preview').classList.add('hidden');document.getElementById('epod-error-msg').classList.add('hidden');
+  document.getElementById('epod-order-info').textContent='Order '+id+' · Collect '+FMV.money(cod);
+  document.getElementById('epod-otp-hint').textContent='Ask the customer for the four-digit delivery PIN. This PIN is never shown to drivers.';
+  document.getElementById('fmv-cod-collected').value=Number(cod)>0?'':'0';document.getElementById('fmv-cod-collected').disabled=Number(cod)===0;
+  document.getElementById('epod-modal').classList.remove('hidden');
+}
+async function previewEPODPhoto(event){
+  const file=event.target.files?.[0];selectedPhotoBase64='';if(!file)return;
+  await FMV.guard(async()=>{
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10*1024*1024)throw new Error('Choose a JPEG, PNG or WebP image smaller than 10 MB.');
+    const image=await createImageBitmap(file);const scale=Math.min(1,1400/Math.max(image.width,image.height));
+    const canvas=document.createElement('canvas');canvas.width=Math.round(image.width*scale);canvas.height=Math.round(image.height*scale);canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);image.close();
+    selectedPhotoBase64=canvas.toDataURL('image/jpeg',.8);const img=document.getElementById('epod-photo-preview');img.src=selectedPhotoBase64;img.classList.remove('hidden');
+  });
+}
+async function submitEPOD(){
+  const err=document.getElementById('epod-error-msg'),btn=document.getElementById('confirm-delivery-btn');if(btn.disabled)return;
+  err.classList.add('hidden');btn.disabled=true;
+  try{
+    if(!selectedPhotoBase64)throw new Error('Capture a doorstep proof photo before confirming.');
+    const otp=FMV.val('epod-otp');if(!/^\d{4}$/.test(otp))throw new Error('Enter the four-digit customer delivery PIN.');
+    const raw=FMV.val('fmv-cod-collected');if(raw==='')throw new Error('Enter the actual COD amount collected.');
+    await FMV.request('/driver/deliveries/'+encodeURIComponent(targetOrderId)+'/epod',{method:'PATCH',body:{status:'Delivered',delivery_otp:otp,epod_photo_url:selectedPhotoBase64,cod_collected:Number(raw)}});
+    closeEPODModal();selectedPhotoBase64='';FMV.notice('Delivery verified and saved.');await refreshDriver();
+  }catch(e){err.textContent=e.message;err.classList.remove('hidden');}finally{btn.disabled=false;}
+}
+async function triggerSOS(){if(!FMV.user){FMV.showAuth();return;}if(!confirm('Record an SOS alert for fleet managers?'))return;return FMV.guard(async()=>{
+  let coords={};try{const p=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{timeout:5000}));coords={gps_lat:p.coords.latitude,gps_lng:p.coords.longitude};}catch(e){}
+  const result=await FMV.request('/driver/sos',{method:'POST',body:{message:'Emergency SOS from driver portal',...coords}});FMV.notice(result.message);
+});}
+async function openExpenseModal(){return FMV.guard(async()=>{
+  const category=prompt('Expense category: Fuel, Toll, Parking or Other','Fuel');if(!category)return;
+  const amount=prompt('Expense amount in INR:');if(amount===null)return;
+  const result=await FMV.request('/driver/expenses',{method:'POST',body:{category,amount:Number(amount),receipt_url:null}});FMV.notice(result.message);refreshDriver();
+});}
+const fmvOriginalSwitchLanguage=switchLanguage;
+switchLanguage=function(lang){fmvOriginalSwitchLanguage(lang);if(lang==='ml'){const title=document.querySelector('[data-i18n=manifest_title]');if(title)title.textContent='പ്രതിദിന ഡെലിവറി പട്ടിക';}document.documentElement.lang=lang;};
+document.addEventListener('fmv:authenticated',()=>{selectDriverTab('work');refreshDriver();});
+document.addEventListener('fmv:sync',refreshDriver);
+document.addEventListener('fmv:locked',()=>clearInterval(fmvTimer));
+document.addEventListener('DOMContentLoaded',()=>{
+  const dashboard=document.getElementById('dashboard-view');const cards=[...dashboard.children];
+  const work=document.createElement('div');work.id='fmv-driver-work';work.className='fmv-driver-pane';
+  const controls=cards[0];controls.id='fmv-work-controls';work.append(controls);
+  const timers=document.createElement('div');timers.className='fmv-panel';timers.innerHTML='<div class="fmv-row"><div><p class="fmv-small">ACTIVE WORK TIME</p><p id="fmv-work-timer" class="fmv-timer">00:00:00</p></div><div><p class="fmv-small">BREAK DURATION</p><p id="fmv-break-timer" class="fmv-timer">00:00:00</p></div></div><h3>Working & break logs</h3><div id="fmv-work-logs"></div>';work.append(timers);
+  const manifest=document.createElement('div');manifest.id='fmv-driver-manifest';manifest.className='hidden fmv-driver-pane';manifest.append(cards[2]);
+  const delivered=document.createElement('div');delivered.id='fmv-driver-delivered';delivered.className='hidden fmv-panel fmv-driver-pane';delivered.innerHTML='<h3>Delivered & failed orders</h3><div id="fmv-delivered-list"></div>';
+  const cash=document.createElement('div');cash.id='fmv-driver-cash';cash.className='hidden fmv-driver-pane';cash.append(cards[1]);const summary=document.createElement('div');summary.id='fmv-cash-detail';summary.className='fmv-panel';cash.append(summary);
+  dashboard.append(work,manifest,delivered,cash);
+  const nav=document.createElement('nav');nav.id='fmv-driver-nav';nav.innerHTML=[['work','Working time'],['manifest','Manifest <span id="fmv-manifest-count">0</span>'],['delivered','Delivered'],['cash','Cash flow'],['profile','Profile']].map(([key,label])=>`<button data-tab="${key}" type="button" aria-selected="${key==='work'}">${label}</button>`).join('');document.body.append(nav);for(const b of nav.querySelectorAll('button'))b.addEventListener('click',()=>selectDriverTab(b.dataset.tab));
+  const cod=document.createElement('label');cod.className='block text-sm font-semibold';cod.textContent='Actual COD collected (INR)';const input=document.createElement('input');input.id='fmv-cod-collected';input.type='number';input.min='0';input.step='.01';input.className='w-full px-3 py-2 border rounded-lg';cod.append(input);document.getElementById('epod-error-msg').before(cod);
+  const ml=document.createElement('option');ml.value='ml';ml.textContent='മലയാളം';document.getElementById('lang-switcher').append(ml);
+  const header=document.querySelector('body > nav');if(header)new ResizeObserver(()=>document.documentElement.style.setProperty('--fmv-header-height',header.getBoundingClientRect().height+'px')).observe(header);
+  document.getElementById('epod-otp').maxLength=4;
+});
