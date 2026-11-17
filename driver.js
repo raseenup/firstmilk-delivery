@@ -694,6 +694,51 @@ async function openExpenseModal() {
 // Original translations, forms and feature source are retained above.
 // ============================================================================
 let fmvDriverShift=null,fmvDriverTab='work',fmvTimer=null;
+const fmvDriverIcons={
+ work:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/>',
+ manifest:'<path d="M6 4h12v16H6zM9 3v3h6V3M9 10h6M9 14h6M9 18h3"/>',
+ delivered:'<circle cx="12" cy="12" r="8.5"/><path d="m8 12 3 3 5-6"/>',
+ cash:'<path d="M4 6h15v14H4zM4 6V4h12M15 11h6v5h-6z"/><circle cx="17.5" cy="13.5" r=".5"/>',
+ profile:'<circle cx="12" cy="8" r="3.5"/><path d="M5 21v-3a7 7 0 0 1 14 0v3"/>',
+ pin:'<path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+ shield:'<path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6zM8 12l3 3 5-6"/>',
+ chevron:'<path d="m9 5 7 7-7 7"/>',
+ close:'<path d="m6 6 12 12M18 6 6 18"/>'
+};
+function driverIcon(name){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+(fmvDriverIcons[name] || fmvDriverIcons.work)+'</svg>';}
+const fmvDriverNavCopy={
+ en:['Work','Manifest','Delivered','Cash flow','Profile'],ar:['الدوام','التوصيلات','المكتملة','النقد','الملف'],hi:['काम','डिलीवरी','पूर्ण','नकदी','प्रोफ़ाइल'],ur:['کام','ترسیلات','مکمل','نقد','پروفائل'],tl:['Trabaho','Delivery','Tapos','Cash','Profile'],ml:['ജോലി','വിതരണം','പൂർത്തിയായി','പണം','പ്രൊഫൈൽ']
+};
+const fmvDriverPages={
+ work:['YOUR WORKING DAY','Ready for a fresh start.','Complete your safety check, manage your shift and keep deliveries moving.'],
+ manifest:['YOUR DELIVERY ROUTE','Every doorstep matters.','Review only the deliveries assigned to you, then record each update securely.'],
+ delivered:['DELIVERY HISTORY','A record of every finish.','Your confirmed and failed deliveries, with their recorded delivery details.'],
+ cash:['DAILY RECONCILIATION','Every rupee, accounted for.','Keep today’s cash collection and shift expenses together in one clear view.'],
+ profile:['YOUR DRIVER ACCOUNT','Your details, up to date.','Keep your contact information and assigned area ready for the fleet team.']
+};
+let fmvDialogReturnFocus=null;
+function driverDialog(id,title,intro,fields,buttonLabel,onSubmit,danger=false){
+ const dialog=document.createElement('section');dialog.id=id;dialog.hidden=true;dialog.className='driver-dialog';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-labelledby',id+'-title');
+ dialog.innerHTML='<form class="driver-dialog-card"><div class="driver-dialog-heading"><div><p class="driver-eyebrow">DRIVER WORKSPACE</p><h2 id="'+id+'-title">'+title+'</h2></div><button type="button" class="driver-icon-button" data-driver-close aria-label="Close '+title+'">'+driverIcon('close')+'</button></div><p class="driver-modal-intro">'+intro+'</p>'+fields+'<p class="driver-dialog-error" role="alert" hidden></p><div class="driver-dialog-actions"><button class="fmv-btn secondary" type="button" data-driver-close>Cancel</button><button class="fmv-btn '+(danger?'danger':'')+'" type="submit">'+buttonLabel+'</button></div></form>';
+ document.body.append(dialog);for(const b of dialog.querySelectorAll('[data-driver-close]'))b.addEventListener('click',()=>closeDriverDialog(dialog));
+ dialog.addEventListener('click',event=>{if(event.target===dialog)closeDriverDialog(dialog);});
+ dialog.addEventListener('keydown',trapDriverDialogFocus);
+ dialog.querySelector('form').addEventListener('submit',async event=>{
+  event.preventDefault();const form=event.currentTarget;if(!form.reportValidity())return;
+  const button=form.querySelector('[type=submit]'),error=form.querySelector('.driver-dialog-error');if(button.disabled)return;button.disabled=true;error.hidden=true;
+  try{await onSubmit(form);closeDriverDialog(dialog);}catch(e){error.textContent=e.message;error.hidden=false;}finally{button.disabled=false;}
+ });
+ return dialog;
+}
+function trapDriverDialogFocus(event){if(event.key!=='Tab')return;const dialog=event.currentTarget,focusable=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled)')].filter(el=>!el.closest('[hidden],.hidden'));if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];if(event.shiftKey && document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first.focus();}}
+function openDriverDialog(id){const dialog=document.getElementById(id);if(!dialog)return;fmvDialogReturnFocus=document.activeElement;dialog.querySelector('.driver-dialog-error').hidden=true;dialog.hidden=false;document.body.classList.add('driver-dialog-open');setTimeout(()=>dialog.querySelector('input:not([type=hidden]),select,textarea,[type=submit]')?.focus(),0);}
+function closeDriverDialog(dialog){dialog.hidden=true;document.body.classList.remove('driver-dialog-open');fmvDialogReturnFocus?.focus?.();}
+function setDriverHeading(tab){
+ const copy=fmvDriverPages[tab] || fmvDriverPages.work;
+ for(const [id,value] of [['driver-page-eyebrow',copy[0]],['driver-page-title',copy[1]],['driver-page-description',copy[2]]]){const el=document.getElementById(id);if(el)el.textContent=value;}
+ const chip=document.getElementById('driver-duty-chip');if(chip){chip.textContent=fmvDriverShift?.status==='on_break'?'On a break':fmvDriverShift?'Shift active':'Off duty';chip.classList.toggle('is-active',!!fmvDriverShift && fmvDriverShift.status!=='on_break');chip.classList.toggle('is-break',fmvDriverShift?.status==='on_break');}
+}
+
 function computeOrderOTP(){return '';}
 function getDefaultOrders(){return [];}
 function handleLogin(e){e?.preventDefault();FMV.showAuth('signin');}
@@ -703,36 +748,37 @@ function openEditProfile(){selectDriverTab('profile');}
 function showShiftView(){selectDriverTab('work');}
 function showDashboard(){selectDriverTab('work');refreshDriver();}
 function selectDriverTab(tab){
-  fmvDriverTab=tab;
-  document.getElementById('login-view').classList.add('hidden');
-  document.getElementById('profile-view').classList.toggle('hidden',tab!=='profile');
-  document.getElementById('shift-view').classList.toggle('hidden',tab!=='work' || !!fmvDriverShift);
-  document.getElementById('dashboard-view').classList.remove('hidden');
-  for(const key of ['work','manifest','delivered','cash'])document.getElementById('fmv-driver-'+key)?.classList.toggle('hidden',key!==tab);
-  for(const b of document.querySelectorAll('#fmv-driver-nav button'))b.setAttribute('aria-selected',String(b.dataset.tab===tab));
-  if(tab==='profile')updateProfileUI();
+ if(!Object.hasOwn(fmvDriverPages,tab))return;
+ fmvDriverTab=tab;
+ document.getElementById('login-view').classList.add('hidden');
+ document.getElementById('profile-view').classList.toggle('hidden',tab!=='profile');
+ document.getElementById('shift-view').classList.toggle('hidden',tab!=='work' || !!fmvDriverShift);
+ document.getElementById('dashboard-view').classList.remove('hidden');
+ for(const key of ['work','manifest','delivered','cash'])document.getElementById('fmv-driver-'+key)?.classList.toggle('hidden',key!==tab);
+ for(const b of document.querySelectorAll('#fmv-driver-nav button')){const selected=b.dataset.tab===tab;b.setAttribute('aria-selected',String(selected));if(selected)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');b.tabIndex=selected?0:-1;}
+ setDriverHeading(tab);if(tab==='profile')updateProfileUI();
 }
 async function saveDriverProfile(e){e?.preventDefault();return FMV.guard(async()=>{
   const result=await FMV.request('/driver/profile',{method:'POST',body:{name:FMV.val('driver-name-input'),phone:FMV.val('driver-phone-input'),address:FMV.val('driver-address-input')}});
   driverProfile=result.driver;updateProfileUI();FMV.notice('Driver profile saved.');selectDriverTab('work');
 });}
 async function refreshDriver(){if(!FMV.user || FMV.user.portal!=='driver')return;return FMV.guard(async()=>{
-  const [profile,active,orders,cash,history]=await Promise.all([FMV.request('/driver/profile'),FMV.request('/driver/shifts/active'),FMV.request('/driver/deliveries'),FMV.request('/driver/reconciliation'),FMV.request('/driver/shifts')]);
-  driverProfile=profile.driver;fmvDriverShift=active.shift;activeShiftId=active.shift?.id || null;manifestOrders=orders;
-  updateProfileUI();renderManifest(orders);renderDriverShift();
-  document.getElementById('total-cod-collected').textContent=FMV.money(cash.total_cod_collected);
-  FMV.setHTML('fmv-cash-detail',`<div class="fmv-row"><span>Expenses</span><strong>${FMV.money(cash.total_expenses)}</strong></div><div class="fmv-row"><span>Cash to remit</span><strong>${FMV.money(cash.net_cash_to_remit)}</strong></div>`+cash.expenses.map(e=>`<div class="fmv-row"><span>${FMV.escape(e.category)}</span><strong>${FMV.money(e.amount)}</strong></div>`).join(''));
-  FMV.setHTML('fmv-work-logs',history.shifts.slice().reverse().map(sh=>`<div class="fmv-panel"><strong>${FMV.escape(sh.vehicle_plate)} · ${FMV.escape(sh.status)}</strong><p class="fmv-small">${FMV.escape(sh.clock_in)}<br>Work ${(sh.work_seconds/3600).toFixed(2)} h · Break ${(sh.break_duration_seconds/60).toFixed(0)} min</p>${sh.events.map(event=>`<p class="fmv-small">${FMV.escape(event.status)} · ${FMV.escape(event.at)}</p>`).join('')}</div>`).join('') || FMV.empty('Clock in to start your first working log.'));
-  selectDriverTab(fmvDriverTab);
+ const [profile,active,orders,cash,history]=await Promise.all([FMV.request('/driver/profile'),FMV.request('/driver/shifts/active'),FMV.request('/driver/deliveries'),FMV.request('/driver/reconciliation'),FMV.request('/driver/shifts')]);
+ driverProfile=profile.driver;fmvDriverShift=active.shift;activeShiftId=active.shift?.id || null;manifestOrders=orders;
+ updateProfileUI();renderManifest(orders);renderDriverShift();
+ document.getElementById('total-cod-collected').textContent=FMV.money(cash.total_cod_collected);
+ FMV.setHTML('fmv-cash-detail',`<div class="driver-finance-grid"><div class="driver-finance-metric driver-finance-expense"><span>Today’s expenses</span><strong>${FMV.money(cash.total_expenses)}</strong></div><div class="driver-finance-metric driver-finance-remit"><span>Cash to remit</span><strong>${FMV.money(cash.net_cash_to_remit)}</strong></div></div><div class="driver-section-heading"><div><p class="driver-eyebrow">YOUR RECORDS</p><h3>Expense activity</h3></div></div>`+(cash.expenses.length?cash.expenses.map(e=>`<div class="driver-expense-row"><span class="driver-expense-icon">${driverIcon('cash')}</span><div><strong>${FMV.escape(e.category)}</strong><p>${FMV.escape(e.date || '')}</p></div><strong>${FMV.money(e.amount)}</strong></div>`).join(''):FMV.empty('No expenses recorded today. Add a real shift expense when needed.')));
+ FMV.setHTML('fmv-work-logs',history.shifts.slice().reverse().map(sh=>`<article class="driver-log-card"><div class="driver-log-top"><strong>${FMV.escape(sh.vehicle_plate)}</strong><span class="driver-status-chip">${FMV.escape(sh.status)}</span></div><p class="fmv-small">${FMV.escape(sh.clock_in)}</p><div class="driver-log-summary"><span>Work <b>${(sh.work_seconds/3600).toFixed(2)} h</b></span><span>Break <b>${(sh.break_duration_seconds/60).toFixed(0)} min</b></span></div><div class="driver-log-events">${sh.events.map(event=>`<p><span>${FMV.escape(event.status)}</span><time>${FMV.escape(event.at)}</time></p>`).join('')}</div></article>`).join('') || FMV.empty('Your working log will appear after you clock in.'));
+ selectDriverTab(fmvDriverTab);
 });}
 function renderDriverShift(){
-  const sh=fmvDriverShift,btn=document.getElementById('break-btn');
-  const vehicle=document.getElementById('active-vehicle-info');if(vehicle)vehicle.textContent=sh?'Vehicle: '+sh.vehicle_plate+' · '+(sh.status==='on_break'?'On break':'Shift active'):'No active shift';
-  if(btn)btn.textContent=sh?.status==='on_break'?'Resume work':'Take break';
-  document.getElementById('fmv-work-controls')?.classList.toggle('hidden',!sh);
-  const status=document.getElementById('shift-status-badge');if(status)status.textContent=sh?'Shift active':'Off duty';
-  clearInterval(fmvTimer);
-  if(sh){sh.syncedAt=Date.now();fmvTimer=setInterval(updateWorkTimers,1000);}updateWorkTimers();
+ const sh=fmvDriverShift,btn=document.getElementById('break-btn');
+ const vehicle=document.getElementById('active-vehicle-info');if(vehicle)vehicle.textContent=sh?'Vehicle: '+sh.vehicle_plate+' · '+(sh.status==='on_break'?'On break':'Shift active'):'No active shift';
+ if(btn)btn.textContent=sh?.status==='on_break'?'Resume work':'Take break';
+ document.getElementById('fmv-work-controls')?.classList.toggle('hidden',!sh);
+ const status=document.getElementById('shift-status-badge');if(status){status.textContent=sh?'Shift active':'Off duty';status.classList.toggle('is-active',!!sh);}
+ setDriverHeading(fmvDriverTab);
+ clearInterval(fmvTimer);if(sh){sh.syncedAt=Date.now();fmvTimer=setInterval(updateWorkTimers,1000);}updateWorkTimers();
 }
 function timeText(seconds){const n=Math.max(0,Math.floor(seconds));return [Math.floor(n/3600),Math.floor(n/60)%60,n%60].map(n=>String(n).padStart(2,'0')).join(':');}
 function updateWorkTimers(){const sh=fmvDriverShift,elapsed=sh?(Date.now()-sh.syncedAt)/1000:0;const work=(sh?.work_seconds || 0)+(sh?.status==='active'?elapsed:0),br=(sh?.break_duration_seconds || 0)+(sh?.status==='on_break'?elapsed:0);const w=document.getElementById('fmv-work-timer'),b=document.getElementById('fmv-break-timer');if(w)w.textContent=timeText(work);if(b)b.textContent=timeText(br);}
@@ -742,26 +788,35 @@ async function startShift(e){e.preventDefault();if(!document.getElementById('shi
   FMV.notice('Shift started.');await refreshDriver();
 });}
 async function toggleBreak(){if(!fmvDriverShift)return;return FMV.guard(async()=>{await FMV.request('/driver/shifts/'+encodeURIComponent(fmvDriverShift.id),{method:'PATCH',body:{status:fmvDriverShift.status==='on_break'?'active':'on_break'}});refreshDriver();});}
-async function clockOut(){if(!fmvDriverShift)return;const raw=prompt('Closing odometer (km):',String(fmvDriverShift.odometer_start));if(raw===null)return;return FMV.guard(async()=>{const reading=Number(raw);if(!Number.isInteger(reading))throw new Error('Enter a whole-number odometer reading.');await FMV.request('/driver/shifts/'+encodeURIComponent(fmvDriverShift.id),{method:'PATCH',body:{status:'completed',odometer_end:reading}});FMV.notice('Shift completed and attendance saved.');refreshDriver();});}
+async function clockOut(){
+ if(!fmvDriverShift)return;
+ const input=document.getElementById('fmv-closing-odometer');input.value=String(fmvDriverShift.odometer_start);input.min=String(fmvDriverShift.odometer_start);openDriverDialog('fmv-clockout-modal');
+}
 function driverOrderCard(o,delivered=false){
-  const e=FMV.escape;return `<div class="fmv-panel"><div class="fmv-row"><strong>${e(o.order_number)}</strong><span>${e(o.status)}</span></div><p>${e(o.customer_name)}</p><p class="fmv-small">${e(o.delivery_address)}<br>${e(o.customer_phone)}<br>${e(o.items_summary)}<br>${e(o.delivery_date)} · ${e(o.payment_status)}</p><div class="fmv-row"><strong>COD due: ${FMV.money(o.cod_amount)}</strong><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(o.delivery_address)}" target="_blank" rel="noopener noreferrer">Directions</a></div>${delivered?`<p class="fmv-small">Completed ${e(o.delivered_time)} · COD collected ${FMV.money(o.cod_collected)}</p>`:`<div class="fmv-flex"><button class="fmv-btn" onclick="openEPODModal('${e(o.id)}',${Number(o.cod_amount)})">Photo & customer PIN</button><button class="fmv-btn secondary" onclick="updateRouteStatus('${e(o.id)}')">Update status</button></div>`}</div>`;
+ const e=FMV.escape,statusClass=o.status==='Failed'?'driver-status-failed':delivered?'driver-status-complete':'driver-status-route';
+ return `<article class="driver-order-card"><div class="driver-order-top"><div><p class="driver-eyebrow">${delivered?'DELIVERY RECORD':'ASSIGNED DELIVERY'}</p><h4>${e(o.order_number || o.id)}</h4></div><span class="driver-status-chip ${statusClass}">${e(o.status)}</span></div><div class="driver-recipient"><span class="driver-recipient-icon">${driverIcon('profile')}</span><div><strong>${e(o.customer_name)}</strong><a href="tel:${encodeURIComponent(o.customer_phone || '')}">${e(o.customer_phone)}</a></div></div><div class="driver-address">${driverIcon('pin')}<p>${e(o.delivery_address)}</p></div><div class="driver-order-items">${e(o.items_summary)}</div><div class="driver-order-meta"><span>${e(o.delivery_date)}</span><span>${e(o.payment_status)}</span></div><div class="driver-order-cash"><span>COD amount</span><strong>${FMV.money(o.cod_amount)}</strong></div>${delivered?`<p class="driver-completion-note">Completed ${e(o.delivered_time || '—')} · COD collected ${FMV.money(o.cod_collected)}</p>`:`<div class="driver-order-actions"><button class="fmv-btn" onclick="openEPODModal('${e(o.id)}',${Number(o.cod_amount)})">${driverIcon('shield')}Photo & customer PIN</button><button class="fmv-btn secondary" onclick="updateRouteStatus('${e(o.id)}')">Update status</button></div>`}<a class="driver-directions" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(o.delivery_address)}" target="_blank" rel="noopener noreferrer">${driverIcon('pin')}Open directions${driverIcon('chevron')}</a></article>`;
 }
 function renderManifest(orders){
-  const pending=orders.filter(o=>!['Delivered','Cancelled','Failed'].includes(o.status)),complete=orders.filter(o=>['Delivered','Failed'].includes(o.status));
-  FMV.setHTML('deliveries-list',pending.map(o=>driverOrderCard(o)).join('') || FMV.empty('No pending deliveries are assigned to you.'));
-  FMV.setHTML('fmv-delivered-list',complete.map(o=>driverOrderCard(o,true)).join('') || FMV.empty('Completed and failed deliveries will appear here.'));
-  const count=document.getElementById('fmv-manifest-count');if(count)count.textContent=pending.length;
+ const pending=orders.filter(o=>!['Delivered','Cancelled','Failed'].includes(o.status)),complete=orders.filter(o=>['Delivered','Failed'].includes(o.status));
+ FMV.setHTML('deliveries-list',pending.map(o=>driverOrderCard(o)).join('') || FMV.empty('You are all caught up. New assigned deliveries will appear here.'));
+ FMV.setHTML('fmv-delivered-list',complete.map(o=>driverOrderCard(o,true)).join('') || FMV.empty('Confirmed and failed deliveries will appear here once recorded.'));
+ const count=document.getElementById('fmv-manifest-count');if(count){count.textContent=pending.length;count.hidden=pending.length===0;}
+ const total=document.getElementById('fmv-assigned-total');if(total)total.textContent=pending.length+' assigned';
+ const completed=document.getElementById('fmv-completed-total');if(completed)completed.textContent=complete.length+' recorded';
 }
 function loadManifest(){return refreshDriver();}
-function updateRouteStatus(id){return FMV.guard(async()=>{const status=prompt('New status: Picked Up, In Transit, Arrived or Failed','In Transit');if(!status)return;const failure_reason=status==='Failed'?prompt('Reason for failed delivery:') || '':'';await FMV.request('/driver/deliveries/'+encodeURIComponent(id)+'/epod',{method:'PATCH',body:{status,failure_reason}});refreshDriver();});}
+function updateRouteStatus(id){
+ const form=document.querySelector('#fmv-route-modal form');form.dataset.orderId=String(id);form.reset();document.getElementById('fmv-route-order').textContent='Order '+id;document.getElementById('fmv-route-reason-label').hidden=true;document.getElementById('fmv-route-reason').required=false;openDriverDialog('fmv-route-modal');
+}
 function openEPODModal(id,cod){
   targetOrderId=id;targetOrderCod=Number(cod);selectedPhotoBase64='';
   document.getElementById('epod-photo-file').value='';document.getElementById('epod-otp').value='';document.getElementById('epod-photo-preview').classList.add('hidden');document.getElementById('epod-error-msg').classList.add('hidden');
   document.getElementById('epod-order-info').textContent='Order '+id+' · Collect '+FMV.money(cod);
   document.getElementById('epod-otp-hint').textContent='Ask the customer for the four-digit delivery PIN. This PIN is never shown to drivers.';
   document.getElementById('fmv-cod-collected').value=Number(cod)>0?'':'0';document.getElementById('fmv-cod-collected').disabled=Number(cod)===0;
-  document.getElementById('epod-modal').classList.remove('hidden');
+  fmvDialogReturnFocus=document.activeElement;document.getElementById('epod-modal').classList.remove('hidden');document.body.classList.add('driver-dialog-open');setTimeout(()=>document.getElementById('epod-photo-file').focus(),0);
 }
+function closeEPODModal(){document.getElementById('epod-modal').classList.add('hidden');document.body.classList.remove('driver-dialog-open');fmvDialogReturnFocus?.focus?.();}
 async function previewEPODPhoto(event){
   const file=event.target.files?.[0];selectedPhotoBase64='';if(!file)return;
   await FMV.guard(async()=>{
@@ -782,32 +837,34 @@ async function submitEPOD(){
     closeEPODModal();selectedPhotoBase64='';FMV.notice('Delivery verified and saved.');await refreshDriver();
   }catch(e){err.textContent=e.message;err.classList.remove('hidden');}finally{btn.disabled=false;}
 }
-async function triggerSOS(){if(!FMV.user){FMV.showAuth();return;}if(!confirm('Record an SOS alert for fleet managers?'))return;return FMV.guard(async()=>{
-  let coords={};try{const p=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{timeout:5000}));coords={gps_lat:p.coords.latitude,gps_lng:p.coords.longitude};}catch(e){}
-  const result=await FMV.request('/driver/sos',{method:'POST',body:{message:'Emergency SOS from driver portal',...coords}});FMV.notice(result.message);
-});}
-async function openExpenseModal(){return FMV.guard(async()=>{
-  const category=prompt('Expense category: Fuel, Toll, Parking or Other','Fuel');if(!category)return;
-  const amount=prompt('Expense amount in INR:');if(amount===null)return;
-  const result=await FMV.request('/driver/expenses',{method:'POST',body:{category,amount:Number(amount),receipt_url:null}});FMV.notice(result.message);refreshDriver();
-});}
+async function triggerSOS(){if(!FMV.user){FMV.showAuth();return;}openDriverDialog('fmv-sos-modal');}
+async function openExpenseModal(){document.querySelector('#fmv-expense-modal form').reset();openDriverDialog('fmv-expense-modal');}
 const fmvOriginalSwitchLanguage=switchLanguage;
-switchLanguage=function(lang){fmvOriginalSwitchLanguage(lang);if(lang==='ml'){const title=document.querySelector('[data-i18n=manifest_title]');if(title)title.textContent='പ്രതിദിന ഡെലിവറി പട്ടിക';}document.documentElement.lang=lang;};
+switchLanguage=function(lang){fmvOriginalSwitchLanguage(lang);if(lang==='ml'){const title=document.querySelector('[data-i18n=manifest_title]');if(title)title.textContent='പ്രതിദിന ഡെലിവറി പട്ടിക';}document.documentElement.lang=lang;const labels=fmvDriverNavCopy[lang] || fmvDriverNavCopy.en;document.querySelectorAll('#fmv-driver-nav .driver-nav-label').forEach((el,index)=>el.textContent=labels[index]);};
 document.addEventListener('fmv:authenticated',()=>{selectDriverTab('work');refreshDriver();});
 document.addEventListener('fmv:sync',refreshDriver);
 document.addEventListener('fmv:locked',()=>clearInterval(fmvTimer));
 document.addEventListener('DOMContentLoaded',()=>{
-  const dashboard=document.getElementById('dashboard-view');const cards=[...dashboard.children];
-  const work=document.createElement('div');work.id='fmv-driver-work';work.className='fmv-driver-pane';
-  const controls=cards[0];controls.id='fmv-work-controls';work.append(controls);
-  const timers=document.createElement('div');timers.className='fmv-panel';timers.innerHTML='<div class="fmv-row"><div><p class="fmv-small">ACTIVE WORK TIME</p><p id="fmv-work-timer" class="fmv-timer">00:00:00</p></div><div><p class="fmv-small">BREAK DURATION</p><p id="fmv-break-timer" class="fmv-timer">00:00:00</p></div></div><h3>Working & break logs</h3><div id="fmv-work-logs"></div>';work.append(timers);
-  const manifest=document.createElement('div');manifest.id='fmv-driver-manifest';manifest.className='hidden fmv-driver-pane';manifest.append(cards[2]);
-  const delivered=document.createElement('div');delivered.id='fmv-driver-delivered';delivered.className='hidden fmv-panel fmv-driver-pane';delivered.innerHTML='<h3>Delivered & failed orders</h3><div id="fmv-delivered-list"></div>';
-  const cash=document.createElement('div');cash.id='fmv-driver-cash';cash.className='hidden fmv-driver-pane';cash.append(cards[1]);const summary=document.createElement('div');summary.id='fmv-cash-detail';summary.className='fmv-panel';cash.append(summary);
-  dashboard.append(work,manifest,delivered,cash);
-  const nav=document.createElement('nav');nav.id='fmv-driver-nav';nav.innerHTML=[['work','Working time'],['manifest','Manifest <span id="fmv-manifest-count">0</span>'],['delivered','Delivered'],['cash','Cash flow'],['profile','Profile']].map(([key,label])=>`<button data-tab="${key}" type="button" aria-selected="${key==='work'}">${label}</button>`).join('');document.body.append(nav);for(const b of nav.querySelectorAll('button'))b.addEventListener('click',()=>selectDriverTab(b.dataset.tab));
-  const cod=document.createElement('label');cod.className='block text-sm font-semibold';cod.textContent='Actual COD collected (INR)';const input=document.createElement('input');input.id='fmv-cod-collected';input.type='number';input.min='0';input.step='.01';input.className='w-full px-3 py-2 border rounded-lg';cod.append(input);document.getElementById('epod-error-msg').before(cod);
-  const ml=document.createElement('option');ml.value='ml';ml.textContent='മലയാളം';document.getElementById('lang-switcher').append(ml);
-  const header=document.querySelector('body > nav');if(header)new ResizeObserver(()=>document.documentElement.style.setProperty('--fmv-header-height',header.getBoundingClientRect().height+'px')).observe(header);
-  document.getElementById('epod-otp').maxLength=4;
+ const dashboard=document.getElementById('dashboard-view');const cards=[...dashboard.children];
+ const work=document.createElement('div');work.id='fmv-driver-work';work.className='fmv-driver-pane';
+ const controls=cards[0];controls.id='fmv-work-controls';work.append(controls);
+ const timers=document.createElement('div');timers.className='driver-time-card';timers.innerHTML='<div class="driver-timer-grid"><div class="driver-time-metric driver-time-active"><span class="driver-metric-icon">'+driverIcon('work')+'</span><p>ACTIVE WORK TIME</p><p id="fmv-work-timer" class="fmv-timer">00:00:00</p><span>Time recorded for this shift</span></div><div class="driver-time-metric driver-time-break"><span class="driver-metric-icon">'+driverIcon('work')+'</span><p>BREAK DURATION</p><p id="fmv-break-timer" class="fmv-timer">00:00:00</p><span>Your accumulated break time</span></div></div><section class="driver-working-log"><div class="driver-section-heading"><div><p class="driver-eyebrow">ATTENDANCE</p><h3>Working & break logs</h3></div></div><div id="fmv-work-logs"></div></section>';work.append(timers);
+ const manifest=document.createElement('div');manifest.id='fmv-driver-manifest';manifest.className='hidden fmv-driver-pane';const manifestHeading=cards[2].querySelector('.driver-card-heading');const manifestCount=document.createElement('span');manifestCount.id='fmv-assigned-total';manifestCount.className='driver-count-chip';manifestCount.textContent='Assigned deliveries';manifestHeading?.append(manifestCount);manifest.append(cards[2]);
+ const delivered=document.createElement('div');delivered.id='fmv-driver-delivered';delivered.className='hidden driver-history-card fmv-driver-pane';delivered.innerHTML='<div class="driver-section-heading"><div><p class="driver-eyebrow">YOUR ROUTE RECORD</p><h3>Delivered & failed orders</h3></div><span id="fmv-completed-total" class="driver-count-chip">Delivery records</span></div><div id="fmv-delivered-list"></div>';
+ const cash=document.createElement('div');cash.id='fmv-driver-cash';cash.className='hidden fmv-driver-pane';cash.append(cards[1]);const summary=document.createElement('div');summary.id='fmv-cash-detail';summary.className='driver-cash-detail';cash.append(summary);
+ dashboard.append(work,manifest,delivered,cash);
+ for(const key of ['work','manifest','delivered','cash','profile']){const pane=document.getElementById(key==='profile'?'profile-view':'fmv-driver-'+key);pane.setAttribute('role','tabpanel');pane.setAttribute('aria-labelledby','driver-tab-'+key);}
+ const nav=document.createElement('nav');nav.id='fmv-driver-nav';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Driver workspace navigation');nav.innerHTML=[['work','Work'],['manifest','Manifest'],['delivered','Delivered'],['cash','Cash flow'],['profile','Profile']].map(([key,label])=>`<button data-tab="${key}" id="driver-tab-${key}" type="button" role="tab" aria-controls="${key==='profile'?'profile-view':'fmv-driver-'+key}" aria-selected="${key==='work'}" tabindex="${key==='work'?0:-1}"><span class="driver-nav-icon">${driverIcon(key)}${key==='manifest'?'<span id="fmv-manifest-count" class="driver-nav-count" hidden>0</span>':''}</span><span class="driver-nav-label">${label}</span></button>`).join('');document.body.append(nav);for(const b of nav.querySelectorAll('button'))b.addEventListener('click',()=>selectDriverTab(b.dataset.tab));
+ nav.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const buttons=[...nav.querySelectorAll('button')],current=buttons.findIndex(b=>b===document.activeElement);const reversed=document.documentElement.dir==='rtl',step=(event.key==='ArrowRight'?1:-1)*(reversed?-1:1);const index=event.key==='Home'?0:event.key==='End'?buttons.length-1:(Math.max(0,current)+step+buttons.length)%buttons.length;buttons[index].focus();selectDriverTab(buttons[index].dataset.tab);});
+ const cod=document.createElement('label');cod.className='block text-sm font-semibold';cod.textContent='Actual COD collected (INR)';const input=document.createElement('input');input.id='fmv-cod-collected';input.type='number';input.min='0';input.step='.01';input.className='w-full px-3 py-2 border rounded-lg';cod.append(input);document.getElementById('epod-error-msg').before(cod);
+ const ml=document.createElement('option');ml.value='ml';ml.textContent='മലയാളം';document.getElementById('lang-switcher').append(ml);
+ const header=document.querySelector('body > nav');if(header)new ResizeObserver(()=>document.documentElement.style.setProperty('--fmv-header-height',header.getBoundingClientRect().height+'px')).observe(header);
+ document.getElementById('epod-otp').maxLength=4;
+ document.getElementById('epod-modal').addEventListener('keydown',trapDriverDialogFocus);
+ driverDialog('fmv-expense-modal','Record a shift expense','Keep a clear record of an actual expense. An active shift is required.','<label>Category<select id="fmv-expense-category" required><option>Fuel</option><option>Toll</option><option>Parking</option><option>Other</option></select></label><label>Expense amount (INR)<input id="fmv-expense-amount" type="number" min="0.01" max="100000000" step="0.01" inputmode="decimal" required placeholder="0.00"></label>','Save expense',async()=>{const result=await FMV.request('/driver/expenses',{method:'POST',body:{category:document.getElementById('fmv-expense-category').value,amount:Number(document.getElementById('fmv-expense-amount').value),receipt_url:null}});FMV.notice(result.message);await refreshDriver();});
+ driverDialog('fmv-clockout-modal','Finish your shift','Check the vehicle reading before recording the end of your working day.','<label>Closing odometer (km)<input id="fmv-closing-odometer" type="number" min="0" step="1" inputmode="numeric" required></label>','Clock out',async()=>{if(!fmvDriverShift)throw new Error('No active shift. Refresh your working day.');const reading=Number(document.getElementById('fmv-closing-odometer').value);if(!Number.isInteger(reading))throw new Error('Enter a whole-number odometer reading.');await FMV.request('/driver/shifts/'+encodeURIComponent(fmvDriverShift.id),{method:'PATCH',body:{status:'completed',odometer_end:reading}});FMV.notice('Shift completed and attendance saved.');await refreshDriver();});
+ driverDialog('fmv-route-modal','Update delivery status','Record what has actually happened on this delivery. Use Photo & customer PIN to confirm a completed delivery.','<p id="fmv-route-order" class="driver-dialog-reference"></p><label>Status<select id="fmv-route-status" required><option>Picked Up</option><option selected>In Transit</option><option>Arrived</option><option>Failed</option></select></label><label id="fmv-route-reason-label" hidden>Reason for failed delivery<textarea id="fmv-route-reason" maxlength="3000" rows="3"></textarea></label>','Save delivery update',async form=>{const status=document.getElementById('fmv-route-status').value,failure_reason=status==='Failed'?document.getElementById('fmv-route-reason').value.trim():'';await FMV.request('/driver/deliveries/'+encodeURIComponent(form.dataset.orderId)+'/epod',{method:'PATCH',body:{status,failure_reason}});FMV.notice('Delivery status saved.');await refreshDriver();});
+ document.getElementById('fmv-route-status').addEventListener('change',event=>{const failed=event.target.value==='Failed';document.getElementById('fmv-route-reason-label').hidden=!failed;document.getElementById('fmv-route-reason').required=failed;});
+ driverDialog('fmv-sos-modal','Record a fleet alert','This records an internal alert for your fleet managers. It is not an emergency-services call. If you need emergency help, contact your local emergency services directly.','<div class="driver-alert-note">Your location will be included if you allow location access. You can still record an alert if location is unavailable.</div>','Record fleet alert',async()=>{let coords={};try{const position=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{timeout:5000}));coords={gps_lat:position.coords.latitude,gps_lng:position.coords.longitude};}catch(e){}const result=await FMV.request('/driver/sos',{method:'POST',body:{message:'Emergency SOS from driver portal',...coords}});FMV.notice(result.message);},true);
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'){const open=document.querySelector('.driver-dialog:not([hidden])');if(open)closeDriverDialog(open);else if(!document.getElementById('epod-modal').classList.contains('hidden'))closeEPODModal();}});
 });

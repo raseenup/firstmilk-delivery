@@ -11,6 +11,8 @@
     <title>First Milk Venture - Driver Portal</title>
     <!-- Original Tailwind v2 stylesheet is superseded by the retained local utility build. -->
     <link href="tailwind.css" rel="stylesheet">
+    <link rel="stylesheet" href="design-system.css">
+    <link rel="stylesheet" href="portal-theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- QR scanner library is optional; delivery PIN verification is performed by the backend. -->
     <style>
@@ -19,21 +21,21 @@
 </head>
 <body data-portal="driver" class="bg-gray-100 font-sans antialiased">
     <!-- Top Navbar -->
-    <nav class="bg-blue-600 text-white shadow-lg sticky top-0 z-50">
+    <nav class="driver-topbar bg-blue-600 text-white shadow-lg sticky top-0 z-50" aria-label="Driver workspace header">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <i class="fa-solid fa-truck-fast text-2xl"></i>
-                <span class="font-bold text-xl">First Milk Driver</span>
+            <div class="driver-brand">
+                <span class="driver-brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7h11v10H3zM14 10h4l3 4v3h-7M6 7V4h5v3"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span>
+                <div><span class="driver-brand-name">First Milk Venture</span><span class="driver-brand-caption">Driver workspace</span></div>
             </div>
-            <div class="flex items-center space-x-3">
-                <select id="lang-switcher" onchange="switchLanguage(this.value)" class="bg-blue-700 text-white text-sm rounded px-2 py-1 border border-blue-500">
+            <div class="driver-header-actions flex items-center space-x-3">
+                <label class="driver-visually-hidden" for="lang-switcher">Portal language</label><select id="lang-switcher" onchange="switchLanguage(this.value)" class="bg-blue-700 text-white text-sm rounded px-2 py-1 border border-blue-500">
                     <option value="en">English</option>
                     <option value="ar">العربية</option>
                     <option value="hi">हिन्दी</option>
                     <option value="ur">اردو</option>
                     <option value="tl">Tagalog</option>
                 </select>
-                <button onclick="triggerSOS()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-bold animate-pulse">
+                <button onclick="triggerSOS()" class="driver-sos bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-bold">
                     <i class="fa-solid fa-triangle-exclamation mr-1"></i> SOS
                 </button>
             </div>
@@ -41,7 +43,11 @@
     </nav>
 
     <!-- Main Container -->
-    <div class="max-w-4xl mx-auto px-4 py-6">
+    <div class="driver-shell max-w-4xl mx-auto px-4 py-6">
+        <section id="driver-page-heading" class="driver-page-heading" aria-labelledby="driver-page-title">
+            <div><p class="driver-eyebrow" id="driver-page-eyebrow">Your working day</p><h2 id="driver-page-title">Ready for a fresh start.</h2><p id="driver-page-description">Complete your safety check, manage your shift and keep deliveries moving.</p></div>
+            <span id="driver-duty-chip" class="driver-duty-chip">Off duty</span>
+        </section>
 
         <!-- 1. Strict Unique Secret Code Login View -->
         <div id="login-view" class="bg-white rounded-xl shadow-md p-6 max-w-md mx-auto mt-8">
@@ -63,13 +69,13 @@
         </div>
 
         <!-- 2. Driver Personal Details View (Name, Phone Number, Address) -->
-        <div id="profile-view" class="hidden bg-white rounded-xl shadow-md p-6 max-w-lg mx-auto mt-4">
+        <div id="profile-view" class="hidden driver-profile-card bg-white rounded-xl shadow-md p-6 max-w-lg mx-auto mt-4">
             <div class="flex justify-between items-center border-b pb-3 mb-4">
                 <div>
                     <h3 class="text-xl font-bold text-gray-800" data-i18n="profile_title">Driver Profile Details</h3>
                     <p class="text-xs text-gray-500" data-i18n="profile_subtitle">Complete or update your personal contact & address details</p>
                 </div>
-                <span class="px-2.5 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-semibold" id="profile-key-badge">Code Verified</span>
+                <span class="px-2.5 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-semibold" id="profile-key-badge">Driver account</span>
             </div>
             <form id="driver-profile-form" onsubmit="saveDriverProfile(event)" class="space-y-4">
                 <div>
@@ -92,9 +98,9 @@
         </div>
 
         <!-- 3. Pre-Trip Inspection & Shift View -->
-        <div id="shift-view" class="hidden space-y-6">
-            <div class="bg-white rounded-xl shadow-md p-6">
-                <div class="flex justify-between items-center mb-4">
+        <div id="shift-view" class="hidden driver-shift-view space-y-6">
+            <div class="driver-safety-card bg-white rounded-xl shadow-md p-6">
+                <div class="driver-card-heading flex justify-between items-center mb-4">
                     <div>
                         <h3 class="text-lg font-bold text-gray-800" data-i18n="pretrip_title">Pre-Trip Vehicle Inspection & Clock-In</h3>
                         <p class="text-xs text-gray-500" id="shift-driver-summary">Driver: --</p>
@@ -117,7 +123,7 @@
                     </div>
                     <div class="border-t pt-4">
                         <label class="block text-sm font-semibold text-gray-700 mb-2" data-i18n="checklist_label">Mandatory Safety Checklist</label>
-                        <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="driver-checklist grid grid-cols-2 gap-3 text-sm">
                             <label class="flex items-center space-x-2"><input type="checkbox" required class="rounded text-blue-600"> <span data-i18n="check_tires">Tires & Pressure OK</span></label>
                             <label class="flex items-center space-x-2"><input type="checkbox" required class="rounded text-blue-600"> <span data-i18n="check_brakes">Brakes Functioning</span></label>
                             <label class="flex items-center space-x-2"><input type="checkbox" required class="rounded text-blue-600"> <span data-i18n="check_fuel">Fuel / Battery Level Adequate</span></label>
@@ -132,7 +138,7 @@
         <!-- 4. Active Dashboard / Manifest View -->
         <div id="dashboard-view" class="hidden space-y-6">
             <!-- Driver Identity & Shift Control Header -->
-            <div class="bg-white rounded-xl shadow-md p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+            <div class="driver-shift-controls bg-white rounded-xl shadow-md p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <div>
                     <div class="flex items-center space-x-2">
                         <h4 class="font-bold text-gray-800" id="driver-welcome-name">Driver Dashboard</h4>
@@ -150,7 +156,7 @@
             </div>
 
             <!-- Financial & COD Reconciliation Card -->
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl shadow-md p-5 text-white flex justify-between items-center">
+            <div class="driver-cash-hero bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl shadow-md p-5 text-white flex justify-between items-center">
                 <div>
                     <p class="text-xs uppercase tracking-wider text-blue-200" data-i18n="cod_summary_title">Daily Cash Collection (COD)</p>
                     <h3 class="text-2xl font-bold mt-1" id="total-cod-collected">₹0.00</h3>
@@ -161,8 +167,8 @@
             </div>
 
             <!-- Manifest Queue -->
-            <div class="bg-white rounded-xl shadow-md p-6">
-                <div class="flex justify-between items-center mb-4">
+            <div class="driver-manifest-card bg-white rounded-xl shadow-md p-6">
+                <div class="driver-card-heading flex justify-between items-center mb-4">
                     <h3 class="text-lg font-bold text-gray-800" data-i18n="manifest_title">Daily Delivery Manifest</h3>
                     <button onclick="loadManifest()" class="text-blue-600 hover:text-blue-800 text-sm font-semibold"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
                 </div>
@@ -175,12 +181,14 @@
     </div>
 
     <!-- ePOD Modal -->
-    <div id="epod-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div id="epod-modal" role="dialog" aria-modal="true" aria-labelledby="driver-epod-title" class="hidden driver-epod-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-xl font-bold text-gray-800" data-i18n="epod_title">Electronic Proof of Delivery (ePOD)</h3>
+                <h3 id="driver-epod-title" class="text-xl font-bold text-gray-800" data-i18n="epod_title">Electronic Proof of Delivery (ePOD)</h3>
                 <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded font-semibold">Required Fields *</span>
             </div>
+            <p class="driver-modal-intro">Capture a proof photo, verify the customer’s PIN and record the actual cash collected.</p>
+            <div class="driver-proof-steps" aria-label="Delivery confirmation steps"><span><b>1</b> Photo proof</span><span><b>2</b> Customer PIN</span><span><b>3</b> Cash check</span></div>
             <div id="epod-order-info" class="text-sm font-semibold text-gray-700 bg-blue-50 p-2.5 rounded-lg"></div>
 
             <div>
