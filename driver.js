@@ -762,15 +762,16 @@ async function saveDriverProfile(e){e?.preventDefault();return FMV.guard(async()
   const result=await FMV.request('/driver/profile',{method:'POST',body:{name:FMV.val('driver-name-input'),phone:FMV.val('driver-phone-input'),address:FMV.val('driver-address-input')}});
   driverProfile=result.driver;updateProfileUI();FMV.notice('Driver profile saved.');selectDriverTab('work');
 });}
-async function refreshDriver(){if(!FMV.user || FMV.user.portal!=='driver')return;return FMV.guard(async()=>{
- const [profile,active,orders,cash,history]=await Promise.all([FMV.request('/driver/profile'),FMV.request('/driver/shifts/active'),FMV.request('/driver/deliveries'),FMV.request('/driver/reconciliation'),FMV.request('/driver/shifts')]);
+async function refreshDriver(){if(!FMV.user || FMV.user.portal!=='driver')return;return FMV.refresh('driver',()=>FMV.guard(async()=>{
+ const snapshot=await FMV.snapshot(),{profile,active,orders,cash,history}=snapshot;
  driverProfile=profile.driver;fmvDriverShift=active.shift;activeShiftId=active.shift?.id || null;manifestOrders=orders;
  updateProfileUI();renderManifest(orders);renderDriverShift();
  document.getElementById('total-cod-collected').textContent=FMV.money(cash.total_cod_collected);
  FMV.setHTML('fmv-cash-detail',`<div class="driver-finance-grid"><div class="driver-finance-metric driver-finance-expense"><span>Today’s expenses</span><strong>${FMV.money(cash.total_expenses)}</strong></div><div class="driver-finance-metric driver-finance-remit"><span>Cash to remit</span><strong>${FMV.money(cash.net_cash_to_remit)}</strong></div></div><div class="driver-section-heading"><div><p class="driver-eyebrow">YOUR RECORDS</p><h3>Expense activity</h3></div></div>`+(cash.expenses.length?cash.expenses.map(e=>`<div class="driver-expense-row"><span class="driver-expense-icon">${driverIcon('cash')}</span><div><strong>${FMV.escape(e.category)}</strong><p>${FMV.escape(e.date || '')}</p></div><strong>${FMV.money(e.amount)}</strong></div>`).join(''):FMV.empty('No expenses recorded today. Add a real shift expense when needed.')));
  FMV.setHTML('fmv-work-logs',history.shifts.slice().reverse().map(sh=>`<article class="driver-log-card"><div class="driver-log-top"><strong>${FMV.escape(sh.vehicle_plate)}</strong><span class="driver-status-chip">${FMV.escape(sh.status)}</span></div><p class="fmv-small">${FMV.escape(sh.clock_in)}</p><div class="driver-log-summary"><span>Work <b>${(sh.work_seconds/3600).toFixed(2)} h</b></span><span>Break <b>${(sh.break_duration_seconds/60).toFixed(0)} min</b></span></div><div class="driver-log-events">${sh.events.map(event=>`<p><span>${FMV.escape(event.status)}</span><time>${FMV.escape(event.at)}</time></p>`).join('')}</div></article>`).join('') || FMV.empty('Your working log will appear after you clock in.'));
+ window.FMVDriverCash?.render(cash,snapshot.notifications || []);
  selectDriverTab(fmvDriverTab);
-});}
+}));}
 function renderDriverShift(){
  const sh=fmvDriverShift,btn=document.getElementById('break-btn');
  const vehicle=document.getElementById('active-vehicle-info');if(vehicle)vehicle.textContent=sh?'Vehicle: '+sh.vehicle_plate+' · '+(sh.status==='on_break'?'On break':'Shift active'):'No active shift';
