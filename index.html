@@ -3,9 +3,11 @@
 <head>
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://backend.firstmilkventure.com https://api.razorpay.com; frame-src https://api.razorpay.com https://checkout.razorpay.com; media-src 'self' blob: https://backend.firstmilkventure.com; object-src 'none'; base-uri 'self'; form-action 'self'">
     <meta name="referrer" content="same-origin">
+    <link rel="preconnect" href="https://backend.firstmilkventure.com" crossorigin>
+    <meta name="theme-color" content="#123e3b">
     <link rel="stylesheet" href="portal.css">
-    <script src="config.js"></script>
-    <script src="portal-core.js"></script>
+    <script defer src="config.js"></script>
+    <script defer src="portal-core.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>First Milk Venture - Driver Portal</title>
@@ -21,6 +23,7 @@
     </style>
     <link rel="stylesheet" href="workspace.css">
     <link rel="stylesheet" href="workforce.css">
+    <link rel="stylesheet" href="polish.css">
 </head>
 <body data-portal="driver" class="bg-gray-100 font-sans antialiased">
     <!-- Top Navbar -->
@@ -51,6 +54,8 @@
             <div><p class="driver-eyebrow" id="driver-page-eyebrow">Your working day</p><h2 id="driver-page-title">Ready for a fresh start.</h2><p id="driver-page-description">Complete your safety check, manage your shift and keep deliveries moving.</p></div>
             <span id="driver-duty-chip" class="driver-duty-chip">Off duty</span>
         </section>
+
+        <aside class="fmv-brand-note" aria-label="The First Milk delivery promise"><span class="fmv-note-mark" aria-hidden="true">✦</span><div><span class="fmv-note-eyebrow">THE CARE BEHIND EVERY DOORSTEP</span><p>Handle with care. Deliver with pride.</p></div><span class="fmv-note-caption">A thoughtful journey.</span></aside>
 
         <!-- 1. Strict Unique Secret Code Login View -->
         <div id="login-view" class="bg-white rounded-xl shadow-md p-6 max-w-md mx-auto mt-8">
@@ -215,9 +220,9 @@
         </div>
     </div>
 
-    <script src="driver.js"></script>
-    <script src="cash.js"></script>
-    <script src="workspace.js"></script>
-    <script src="workforce.js"></script>
+    <script defer src="driver.js"></script>
+    <script defer src="cash.js"></script>
+    <script defer src="workspace.js"></script>
+    <script defer src="workforce.js"></script>
 </body>
 </html>
