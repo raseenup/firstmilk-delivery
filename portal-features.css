@@ -39,3 +39,24 @@
 @media(prefers-reduced-motion:no-preference){.fmv-chat-toggle:hover{transform:translateY(-1px);transition:transform .18s}}
 [data-theme="dark"] .fmv-studio,[data-theme="dark"] .fmv-floating-panel,[data-theme="dark"] .fmv-returns-panel,[data-theme="dark"] .fmv-payment-panel{--fmv-surface:#18292c;--fmv-surface-soft:#20373a;--fmv-input-bg:#122528;--fmv-ink:#edf8f5}
 :focus-visible{outline:3px solid #e8b951;outline-offset:2px}
+
+/* Accessible, mobile-friendly password eye control used by all portal auth screens. */
+.fmv-password-control{position:relative;display:block;width:100%;isolation:isolate}
+.fmv-password-control > input{width:100%;padding-right:3.65rem!important;min-width:0}
+.fmv-password-visibility{position:absolute;top:50%;right:.45rem;transform:translateY(-50%);width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:.65rem;background:transparent;color:var(--fmv-ink,#294d44);cursor:pointer;z-index:2;touch-action:manipulation}
+.fmv-password-visibility svg{width:22px;height:22px;pointer-events:none}
+.fmv-password-visibility:hover{background:rgba(28,124,98,.1)}
+.fmv-password-visibility:focus-visible{outline:3px solid #d6a53a;outline-offset:0}
+.fmv-reset-password-hint{display:block;font-size:.82rem;line-height:1.5;color:var(--fmv-ink,#45625a);opacity:.85;padding:.2rem 0}
+#fmv-password-help{display:block;font-size:.82rem;line-height:1.55;color:var(--fmv-ink,#45625a);opacity:.88}
+#fmv-password-help[hidden]{display:none}
+[data-theme="dark"] .fmv-password-visibility,[data-theme="dark"] .fmv-reset-password-hint,[data-theme="dark"] #fmv-password-help{color:#e8f6f1}
+
+/* Driver FMV AI stays inside Profile, not floating over route controls. */
+.fmv-driver-inline-ai{display:grid;gap:.8rem;margin-top:1.25rem;padding:1rem;border:1px solid #bfd9ca;border-radius:1rem;background:var(--fmv-surface,#fff);color:var(--fmv-ink,#153a32)}
+.fmv-driver-inline-ai h3{font-size:1.25rem;font-weight:800}
+.fmv-driver-inline-ai p{line-height:1.55}
+.fmv-driver-inline-ai button{min-height:44px}
+.fmv-driver-inline-ai .fmv-inline-chat-feed{display:grid;gap:.6rem;min-height:125px;max-height:300px;overflow-y:auto;padding:.8rem;background:var(--fmv-surface-soft,#eff7f0);border-radius:.85rem}
+.fmv-driver-inline-ai .fmv-inline-chat-feed p{padding:.65rem;border-radius:.6rem;background:var(--fmv-surface,#fff);white-space:pre-wrap;overflow-wrap:anywhere}
+[data-theme="dark"] .fmv-driver-inline-ai{--fmv-surface:#18292c;--fmv-surface-soft:#20373a;--fmv-ink:#edf8f5}
