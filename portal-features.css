@@ -60,3 +60,23 @@
 .fmv-driver-inline-ai .fmv-inline-chat-feed{display:grid;gap:.6rem;min-height:125px;max-height:300px;overflow-y:auto;padding:.8rem;background:var(--fmv-surface-soft,#eff7f0);border-radius:.85rem}
 .fmv-driver-inline-ai .fmv-inline-chat-feed p{padding:.65rem;border-radius:.6rem;background:var(--fmv-surface,#fff);white-space:pre-wrap;overflow-wrap:anywhere}
 [data-theme="dark"] .fmv-driver-inline-ai{--fmv-surface:#18292c;--fmv-surface-soft:#20373a;--fmv-ink:#edf8f5}
+
+/* Driver return pickups: simple lightweight layout, dark-mode safe. */
+.fmv-collection-workspace{display:grid;gap:1.2rem}
+.fmv-collection-workspace h3{font-size:1.4rem;font-weight:850}
+.fmv-collection-workspace .driver-section-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.fmv-collection-workspace p{line-height:1.5}
+.fmv-driver-pickup-list{display:grid;gap:1rem}
+.fmv-driver-pickup-card{padding:clamp(.8rem,2.5vw,1.3rem);background:var(--fmv-surface,#fff);border:1px solid #b7d3c5;border-radius:1rem;color:var(--fmv-ink,#204939);display:grid;gap:.65rem;overflow-wrap:anywhere}
+.fmv-driver-pickup-card p{margin:0}
+.fmv-driver-pickup-card strong{font-weight:800}
+.fmv-driver-pickup-form{display:grid;gap:.8rem;border-top:1px solid #b7d3c5;padding-top:1rem}
+.fmv-driver-pickup-form input,.fmv-driver-pickup-form select,.fmv-driver-pickup-form textarea{width:100%;padding:.75rem;border:1px solid #9bb7a8;border-radius:.75rem;background:var(--fmv-input-bg,#fff);color:var(--fmv-ink,#163f32);font:inherit}
+.fmv-driver-pickup-form .fmv-btn{min-height:46px;font-weight:800}
+.fmv-driver-pickup-card .fmv-return-state{background:#e3f3e9;border-radius:999px;padding:.3rem .6rem;font-weight:750;text-transform:capitalize}
+#fmv-driver-nav{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+#fmv-driver-nav button{flex:0 0 auto;min-width:64px}
+#fmv-driver-nav::-webkit-scrollbar{display:none}
+[data-theme="dark"] .fmv-driver-pickup-card{--fmv-surface:#1a3034;--fmv-ink:#f3fbf8;--fmv-input-bg:#11272b}
+[data-theme="dark"] .fmv-driver-pickup-card .fmv-return-state{background:#31513c;color:#f3fbf8}
+@media(max-width:560px){.fmv-collection-workspace .driver-section-heading{flex-wrap:wrap}}
