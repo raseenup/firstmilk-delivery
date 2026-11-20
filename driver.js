@@ -707,12 +707,13 @@ const fmvDriverIcons={
 };
 function driverIcon(name){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+(fmvDriverIcons[name] || fmvDriverIcons.work)+'</svg>';}
 const fmvDriverNavCopy={
- en:['Work','Manifest','Delivered','Cash flow','Profile'],ar:['الدوام','التوصيلات','المكتملة','النقد','الملف'],hi:['काम','डिलीवरी','पूर्ण','नकदी','प्रोफ़ाइल'],ur:['کام','ترسیلات','مکمل','نقد','پروفائل'],tl:['Trabaho','Delivery','Tapos','Cash','Profile'],ml:['ജോലി','വിതരണം','പൂർത്തിയായി','പണം','പ്രൊഫൈൽ']
+ en:['Work','Manifest','Delivered','Cash flow','Pickups','Profile'],ar:['الدوام','التوصيلات','المكتملة','النقد','الاسترجاع','الملف'],hi:['काम','डिलीवरी','पूर्ण','नकदी','वापसी','प्रोफ़ाइल'],ur:['کام','ترسیلات','مکمل','نقد','واپسی','پروفائل'],tl:['Trabaho','Delivery','Tapos','Cash','Returns','Profile'],ml:['ജോലി','വിതരണം','പൂർത്തിയായി','പണം','റിട്ടേൺ','പ്രൊഫൈൽ']
 };
 const fmvDriverPages={
  work:['YOUR WORKING DAY','Ready for a fresh start.','Complete your safety check, manage your shift and keep deliveries moving.'],
  manifest:['YOUR DELIVERY ROUTE','Every doorstep matters.','Review only the deliveries assigned to you, then record each update securely.'],
  delivered:['DELIVERY HISTORY','A record of every finish.','Your confirmed and failed deliveries, with their recorded delivery details.'],
+ collections:['RETURN COLLECTIONS','Pickups assigned to you.','Use the customer’s one-time code to verify physical collection before handover.'],
  cash:['DAILY RECONCILIATION','Every rupee, accounted for.','Keep today’s cash collection and shift expenses together in one clear view.'],
  profile:['YOUR DRIVER ACCOUNT','Your account, in one place.','Manage earnings, incentives, documents, performance and preferences.']
 };
@@ -754,9 +755,10 @@ function selectDriverTab(tab){
  document.getElementById('profile-view').classList.toggle('hidden',tab!=='profile');
  document.getElementById('shift-view').classList.toggle('hidden',tab!=='work' || !!fmvDriverShift);
  document.getElementById('dashboard-view').classList.remove('hidden');
- for(const key of ['work','manifest','delivered','cash'])document.getElementById('fmv-driver-'+key)?.classList.toggle('hidden',key!==tab);
+ for(const key of ['work','manifest','delivered','cash','collections'])document.getElementById('fmv-driver-'+key)?.classList.toggle('hidden',key!==tab);
  for(const b of document.querySelectorAll('#fmv-driver-nav button')){const selected=b.dataset.tab===tab;b.setAttribute('aria-selected',String(selected));if(selected)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');b.tabIndex=selected?0:-1;}
  setDriverHeading(tab);if(tab==='profile')updateProfileUI();
+ document.dispatchEvent(new CustomEvent('fmv:driver-tab',{detail:tab}));
 }
 async function saveDriverProfile(e){e?.preventDefault();return FMV.guard(async()=>{
   const result=await FMV.request('/driver/profile',{method:'POST',body:{name:FMV.val('driver-name-input'),phone:FMV.val('driver-phone-input'),address:FMV.val('driver-address-input')}});
@@ -854,8 +856,8 @@ document.addEventListener('DOMContentLoaded',()=>{
  const delivered=document.createElement('div');delivered.id='fmv-driver-delivered';delivered.className='hidden driver-history-card fmv-driver-pane';delivered.innerHTML='<div class="driver-section-heading"><div><p class="driver-eyebrow">YOUR ROUTE RECORD</p><h3>Delivered & failed orders</h3></div><span id="fmv-completed-total" class="driver-count-chip">Delivery records</span></div><div id="fmv-delivered-list"></div>';
  const cash=document.createElement('div');cash.id='fmv-driver-cash';cash.className='hidden fmv-driver-pane';cash.append(cards[1]);const summary=document.createElement('div');summary.id='fmv-cash-detail';summary.className='driver-cash-detail';cash.append(summary);
  dashboard.append(work,manifest,delivered,cash);
- for(const key of ['work','manifest','delivered','cash','profile']){const pane=document.getElementById(key==='profile'?'profile-view':'fmv-driver-'+key);pane.setAttribute('role','tabpanel');pane.setAttribute('aria-labelledby','driver-tab-'+key);}
- const nav=document.createElement('nav');nav.id='fmv-driver-nav';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Driver workspace navigation');nav.innerHTML=[['work','Work'],['manifest','Manifest'],['delivered','Delivered'],['cash','Cash flow'],['profile','Profile']].map(([key,label])=>`<button data-tab="${key}" id="driver-tab-${key}" type="button" role="tab" aria-controls="${key==='profile'?'profile-view':'fmv-driver-'+key}" aria-selected="${key==='work'}" tabindex="${key==='work'?0:-1}"><span class="driver-nav-icon">${driverIcon(key)}${key==='manifest'?'<span id="fmv-manifest-count" class="driver-nav-count" hidden>0</span>':''}</span><span class="driver-nav-label">${label}</span></button>`).join('');document.body.append(nav);for(const b of nav.querySelectorAll('button'))b.addEventListener('click',()=>selectDriverTab(b.dataset.tab));
+ for(const key of ['work','manifest','delivered','cash','collections','profile']){const pane=document.getElementById(key==='profile'?'profile-view':'fmv-driver-'+key);pane.setAttribute('role','tabpanel');pane.setAttribute('aria-labelledby','driver-tab-'+key);}
+ const nav=document.createElement('nav');nav.id='fmv-driver-nav';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Driver workspace navigation');nav.innerHTML=[['work','Work'],['manifest','Manifest'],['delivered','Delivered'],['cash','Cash flow'],['collections','Pickups'],['profile','Profile']].map(([key,label])=>`<button data-tab="${key}" id="driver-tab-${key}" type="button" role="tab" aria-controls="${key==='profile'?'profile-view':'fmv-driver-'+key}" aria-selected="${key==='work'}" tabindex="${key==='work'?0:-1}"><span class="driver-nav-icon">${driverIcon(key)}${key==='manifest'?'<span id="fmv-manifest-count" class="driver-nav-count" hidden>0</span>':''}</span><span class="driver-nav-label">${label}</span></button>`).join('');document.body.append(nav);for(const b of nav.querySelectorAll('button'))b.addEventListener('click',()=>selectDriverTab(b.dataset.tab));
  nav.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const buttons=[...nav.querySelectorAll('button')],current=buttons.findIndex(b=>b===document.activeElement);const reversed=document.documentElement.dir==='rtl',step=(event.key==='ArrowRight'?1:-1)*(reversed?-1:1);const index=event.key==='Home'?0:event.key==='End'?buttons.length-1:(Math.max(0,current)+step+buttons.length)%buttons.length;buttons[index].focus();selectDriverTab(buttons[index].dataset.tab);});
  const cod=document.createElement('label');cod.className='block text-sm font-semibold';cod.textContent='Actual COD collected (₹)';const input=document.createElement('input');input.id='fmv-cod-collected';input.type='number';input.min='0';input.step='.01';input.className='w-full px-3 py-2 border rounded-lg';cod.append(input);document.getElementById('epod-error-msg').before(cod);
  const ml=document.createElement('option');ml.value='ml';ml.textContent='മലയാളം';document.getElementById('lang-switcher').append(ml);
