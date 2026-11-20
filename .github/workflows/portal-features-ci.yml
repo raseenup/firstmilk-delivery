@@ -17,6 +17,7 @@ jobs:
         run: |
           node --check 'driver.js'
           node --check 'driver-assistant.js'
+          node --check 'return-collections.js'
 
       - name: Install browser-test dependencies
         run: npm install --no-save jsdom@27.2.0
