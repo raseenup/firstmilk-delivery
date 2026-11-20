@@ -80,3 +80,15 @@
 [data-theme="dark"] .fmv-driver-pickup-card{--fmv-surface:#1a3034;--fmv-ink:#f3fbf8;--fmv-input-bg:#11272b}
 [data-theme="dark"] .fmv-driver-pickup-card .fmv-return-state{background:#31513c;color:#f3fbf8}
 @media(max-width:560px){.fmv-collection-workspace .driver-section-heading{flex-wrap:wrap}}
+
+/* Driver pickup condition declaration and case-response card. */
+.fmv-driver-incident-section{display:grid;gap:.8rem;margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid #a9cdbc}
+.fmv-driver-incident-section h3{font-size:1.2rem;font-weight:850;color:var(--fmv-ink,#174234)}
+.fmv-driver-incident-section>.fmv-small{max-width:65ch}
+.fmv-driver-pickup-form select[name="additional_damage"]{font-weight:650}
+.fmv-driver-pickup-form label.fmv-check{display:flex;gap:.55rem;align-items:flex-start;font-size:.87rem;line-height:1.5}
+.fmv-driver-pickup-form label.fmv-check input{flex:0 0 19px;width:19px;height:19px;min-height:19px;accent-color:#087959}
+.fmv-driver-pickup-form textarea{min-height:75px}
+.fmv-driver-pickup-card{box-shadow:0 4px 18px rgba(18,72,51,.06)}
+.fmv-driver-pickup-form .fmv-small{font-size:.8rem;color:var(--fmv-ink,#315d4c);line-height:1.55}
+[data-theme="dark"] .fmv-driver-incident-section{border-color:#376358}
