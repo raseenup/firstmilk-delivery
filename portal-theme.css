@@ -284,3 +284,7 @@ html[dir="rtl"] .driver-directions svg:last-child { transform:rotate(180deg); }
 
 /* Keep bottom navigation labels readable at every viewport size. */
 body[data-portal="driver"] #fmv-driver-nav button { font-size:11px; }
+
+/* Branded media stays visually clean: promotional video playback has no native controls. */
+body[data-portal="driver"] .fmv-driver-promo-visual video{pointer-events:none;user-select:none;-webkit-user-select:none;}
+body[data-portal="driver"] .fmv-driver-promo-visual video::-webkit-media-controls,body[data-portal="driver"] .fmv-driver-promo-visual video::-webkit-media-controls-start-playback-button{display:none!important;}
