@@ -92,3 +92,28 @@
 .fmv-driver-pickup-card{box-shadow:0 4px 18px rgba(18,72,51,.06)}
 .fmv-driver-pickup-form .fmv-small{font-size:.8rem;color:var(--fmv-ink,#315d4c);line-height:1.55}
 [data-theme="dark"] .fmv-driver-incident-section{border-color:#376358}
+
+/* Staff announcements: media is lazy and larger videos are opt-in only. */
+.fmv-driver-promotions{display:grid;gap:.9rem;margin:.8rem 0 1.2rem}
+.fmv-driver-promotions[hidden]{display:none}
+.fmv-driver-promo-heading .driver-eyebrow{color:#267d61}
+.fmv-driver-promo-heading h3{font-size:1.2rem;font-weight:850;color:var(--fmv-ink,#154738)}
+.fmv-driver-promo-card{display:grid;grid-template-columns:minmax(120px,35%) minmax(0,1fr);gap:.9rem;
+ border:1px solid #acd4bc;border-radius:1.15rem;padding:.75rem;
+ background:linear-gradient(130deg,#edf9ef,#f8fff6);color:#174436;
+ box-shadow:0 7px 24px rgba(14,67,52,.06)}
+.fmv-driver-promo-card h4{font-weight:850;font-size:1rem;line-height:1.32}
+.fmv-driver-promo-card p,.fmv-driver-promo-card small{line-height:1.55;margin:.3rem 0}
+.fmv-driver-promo-visual{display:grid;align-items:center;overflow:hidden;min-height:95px;
+ background:linear-gradient(135deg,#d9f2e1,#bfe8d0);border-radius:.9rem}
+.fmv-driver-promo-visual img,.fmv-driver-promo-visual video{width:100%;height:100%;
+ max-height:230px;object-fit:contain}
+.fmv-driver-promo-play{width:100%;min-height:64px;border:1px solid #368b68;
+ border-radius:.65rem;background:#126746;color:white;padding:.75rem;
+ font-size:.88rem;font-weight:800;cursor:pointer}
+.fmv-driver-promo-play:focus-visible{outline:3px solid #f2c56a;outline-offset:2px}
+@media(max-width:500px){.fmv-driver-promo-card{grid-template-columns:1fr}
+.fmv-driver-promo-visual{min-height:120px}}
+[data-theme="dark"] .fmv-driver-promo-card{background:linear-gradient(135deg,#1a3830,#244339);
+ color:#f1fcf4;border-color:#4c8064}
+[data-theme="dark"] .fmv-driver-promo-heading h3{color:#eefdf3}
