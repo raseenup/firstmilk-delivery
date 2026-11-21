@@ -15,7 +15,7 @@
         const src=mediaURL(item.media_url);
         const video=item.mime_type==='video/mp4';
         const image=src&&!video?`<img src="${esc(src)}" loading="lazy" decoding="async" alt="${esc(item.alt_text||item.title)}">`:'';
-        const play=src&&video?`<button type="button" class="fmv-driver-promo-play" data-driver-promo-play="${esc(item.id)}">▶ Play video · ${esc(item.title)}</button>`:'';
+        const play=src&&video?`<video src="${esc(src)}" muted loop autoplay playsinline webkit-playsinline preload="none" disablepictureinpicture disableremoteplayback aria-label="${esc(item.alt_text||item.title)}" tabindex="-1"></video>`:'';
         return `<article class="fmv-driver-promo-card">
           <div class="fmv-driver-promo-visual">${image}${play}</div>
           <div><h4>${esc(item.title)}</h4><p>${esc(item.description)}</p>
@@ -51,7 +51,7 @@
       if(!item||item.mime_type!=='video/mp4')return;
       const src=mediaURL(item.media_url);if(!src)return;
       const video=document.createElement('video');
-      video.controls=true;video.playsInline=true;video.preload='metadata';
+      video.controls=false;video.muted=true;video.loop=true;video.autoplay=true;video.playsInline=true;video.preload='none';video.disablePictureInPicture=true;
       video.setAttribute('aria-label',item.alt_text||item.title);
       video.src=src;button.replaceWith(video);video.play().catch(()=>{});
     });
