@@ -791,9 +791,20 @@ async function startShift(e){e.preventDefault();if(!document.getElementById('shi
   FMV.notice('Shift started.');await refreshDriver();
 });}
 async function toggleBreak(){if(!fmvDriverShift)return;return FMV.guard(async()=>{await FMV.request('/driver/shifts/'+encodeURIComponent(fmvDriverShift.id),{method:'PATCH',body:{status:fmvDriverShift.status==='on_break'?'active':'on_break'}});refreshDriver();});}
+function ensureClockoutDialog(){
+ const existing=document.getElementById('fmv-clockout-modal');
+ if(existing)return existing;
+ // Re-create the clock-out dialog if other optional UI initialization was interrupted.
+ return ensureClockoutDialog();
+}
 async function clockOut(){
  if(!fmvDriverShift)return;
- const input=document.getElementById('fmv-closing-odometer');input.value=String(fmvDriverShift.odometer_start);input.min=String(fmvDriverShift.odometer_start);openDriverDialog('fmv-clockout-modal');
+ const dialog=ensureClockoutDialog();
+ const input=dialog?.querySelector('#fmv-closing-odometer');
+ if(!input){FMV.notice('The clock-out form is unavailable. Please reload and try again.',true);return;}
+ const start=Math.max(0,Number(fmvDriverShift.odometer_start)||0);
+ input.value=String(start);input.min=String(start);
+ openDriverDialog('fmv-clockout-modal');
 }
 function driverOrderCard(o,delivered=false){
  const e=FMV.escape,statusClass=o.status==='Failed'?'driver-status-failed':delivered?'driver-status-complete':'driver-status-route';
@@ -856,12 +867,18 @@ document.addEventListener('DOMContentLoaded',()=>{
  const delivered=document.createElement('div');delivered.id='fmv-driver-delivered';delivered.className='hidden driver-history-card fmv-driver-pane';delivered.innerHTML='<div class="driver-section-heading"><div><p class="driver-eyebrow">YOUR ROUTE RECORD</p><h3>Delivered & failed orders</h3></div><span id="fmv-completed-total" class="driver-count-chip">Delivery records</span></div><div id="fmv-delivered-list"></div>';
  const cash=document.createElement('div');cash.id='fmv-driver-cash';cash.className='hidden fmv-driver-pane';cash.append(cards[1]);const summary=document.createElement('div');summary.id='fmv-cash-detail';summary.className='driver-cash-detail';cash.append(summary);
  dashboard.append(work,manifest,delivered,cash);
- for(const key of ['work','manifest','delivered','cash','collections','profile']){const pane=document.getElementById(key==='profile'?'profile-view':'fmv-driver-'+key);pane.setAttribute('role','tabpanel');pane.setAttribute('aria-labelledby','driver-tab-'+key);}
+ for(const key of ['work','manifest','delivered','cash','collections','profile']){
+  // Pickups is created by return-collections.js in a later DOMContentLoaded handler.
+  // An absent optional pane must not abort navigation or dialog initialization.
+  const pane=document.getElementById(key==='profile'?'profile-view':'fmv-driver-'+key);
+  if(!pane)continue;
+  pane.setAttribute('role','tabpanel');pane.setAttribute('aria-labelledby','driver-tab-'+key);
+ }
  const nav=document.createElement('nav');nav.id='fmv-driver-nav';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Driver workspace navigation');nav.innerHTML=[['work','Work'],['manifest','Manifest'],['delivered','Delivered'],['cash','Cash flow'],['collections','Pickups'],['profile','Profile']].map(([key,label])=>`<button data-tab="${key}" id="driver-tab-${key}" type="button" role="tab" aria-controls="${key==='profile'?'profile-view':'fmv-driver-'+key}" aria-selected="${key==='work'}" tabindex="${key==='work'?0:-1}"><span class="driver-nav-icon">${driverIcon(key)}${key==='manifest'?'<span id="fmv-manifest-count" class="driver-nav-count" hidden>0</span>':''}</span><span class="driver-nav-label">${label}</span></button>`).join('');document.body.append(nav);for(const b of nav.querySelectorAll('button'))b.addEventListener('click',()=>selectDriverTab(b.dataset.tab));
  nav.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const buttons=[...nav.querySelectorAll('button')],current=buttons.findIndex(b=>b===document.activeElement);const reversed=document.documentElement.dir==='rtl',step=(event.key==='ArrowRight'?1:-1)*(reversed?-1:1);const index=event.key==='Home'?0:event.key==='End'?buttons.length-1:(Math.max(0,current)+step+buttons.length)%buttons.length;buttons[index].focus();selectDriverTab(buttons[index].dataset.tab);});
  const cod=document.createElement('label');cod.className='block text-sm font-semibold';cod.textContent='Actual COD collected (₹)';const input=document.createElement('input');input.id='fmv-cod-collected';input.type='number';input.min='0';input.step='.01';input.className='w-full px-3 py-2 border rounded-lg';cod.append(input);document.getElementById('epod-error-msg').before(cod);
  const ml=document.createElement('option');ml.value='ml';ml.textContent='മലയാളം';document.getElementById('lang-switcher').append(ml);
- const header=document.querySelector('body > nav');if(header)new ResizeObserver(()=>document.documentElement.style.setProperty('--fmv-header-height',header.getBoundingClientRect().height+'px')).observe(header);
+ const header=document.querySelector('body > nav.driver-topbar');if(header){const setHeight=()=>document.documentElement.style.setProperty('--fmv-header-height',header.getBoundingClientRect().height+'px');setHeight();if('ResizeObserver' in window)new ResizeObserver(setHeight).observe(header);}
  document.getElementById('epod-otp').maxLength=4;
  document.getElementById('epod-modal').addEventListener('keydown',trapDriverDialogFocus);
  driverDialog('fmv-expense-modal','Record a shift expense','Keep a clear record of an actual expense. An active shift is required.','<label>Category<select id="fmv-expense-category" required><option>Fuel</option><option>Toll</option><option>Parking</option><option>Other</option></select></label><label>Expense amount (₹)<input id="fmv-expense-amount" type="number" min="0.01" max="100000000" step="0.01" inputmode="decimal" required placeholder="0.00"></label>','Save expense',async()=>{const result=await FMV.request('/driver/expenses',{method:'POST',body:{category:document.getElementById('fmv-expense-category').value,amount:Number(document.getElementById('fmv-expense-amount').value),receipt_url:null}});FMV.notice(result.message);await refreshDriver();});
