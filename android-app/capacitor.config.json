@@ -1,0 +1,18 @@
+{
+  "appId": "com.firstmilkventure.driver",
+  "appName": "First Milk Venture Driver",
+  "webDir": "www",
+  "server": {
+    "hostname": "localhost",
+    "androidScheme": "https",
+    "cleartext": false
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}
