@@ -6,7 +6,7 @@ test('Driver promotions use existing authenticated, schedule-filtered campaign A
   assert.match(script,/FMV\.request\('\/content'\)/);
   assert.match(script,/item\.placement==='driver'/);
   assert.match(script,/FMV\.user\?\.portal!=='driver'/);
-  assert.match(script,/FMV\.token!==session/);
+  assert.match(script,/FMV\.sessionId!==session/);
   assert.match(html,/driver-promotions\.js/);
 });
 test('No auto-loading 50MB video until user clicks to play',()=>{

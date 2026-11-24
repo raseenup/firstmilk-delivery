@@ -28,10 +28,10 @@
     if(FMV.user?.portal!=='driver')return;
     if(pending)return pending;
     if(!force && Date.now()-last<60000){render();return;}
-    const session=FMV.token;
+    const session=FMV.sessionId;
     pending=(async()=>{
       const result=await FMV.request('/content');
-      if(FMV.token!==session)return;
+      if(FMV.sessionId!==session)return;
       campaigns=(result.campaigns||[]).filter(item=>item.placement==='driver'
         && item.status==='published').slice(0,8);
       last=Date.now();render();
