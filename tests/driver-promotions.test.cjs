@@ -9,13 +9,16 @@ test('Driver promotions use existing authenticated, schedule-filtered campaign A
   assert.match(script,/FMV\.sessionId!==session/);
   assert.match(html,/driver-promotions\.js/);
 });
-test('No auto-loading 50MB video until user clicks to play',()=>{
+test('Videos load on visibility or an explicit play request, with data-saving and motion preferences respected',()=>{
   assert.match(script,/data-driver-promo-play/);
   assert.match(script,/event\.target\.closest/);
   assert.match(script,/video\.preload='metadata'/);
   assert.match(script,/loading="lazy"/);
   assert.doesNotMatch(script,/<video[^>]*autoplay/);
   assert.match(script,/replaceWith\(video\)/);
+  assert.match(script,/entry\.isIntersecting/);
+  assert.match(script,/prefers-reduced-motion: reduce/);
+  assert.match(script,/connection\?\.saveData/);
 });
 test('Promotions never read another portal confidential data',()=>{
   assert.doesNotMatch(script,/localStorage\.getItem/);
