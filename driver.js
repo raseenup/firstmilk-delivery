@@ -240,46 +240,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-async function handleLogin(e) {
-    e.preventDefault();
-    const keyInput = document.getElementById("driver-key-input");
-    const errEl = document.getElementById("login-error-msg");
-    const btn = document.getElementById("login-submit-btn");
-    const key = keyInput.value.trim();
-
-    errEl.classList.add("hidden");
-    btn.disabled = true;
-    btn.innerText = "Verifying...";
-
-    try {
-        const res = await fetch(`${API_BASE}/driver/verify-key`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ driver_key: key })
-        });
-        const data = await res.json();
-
-        if (res.ok && data.status === "verified") {
-            currentDriverKey = key;
-            localStorage.setItem("driver_key", key);
-            driverProfile = data.driver || { name: "", phone: "", address: "" };
-            localStorage.setItem("driver_profile", JSON.stringify(driverProfile));
-            updateProfileUI();
-
-            // Always show Profile Details step right after login so driver can enter/confirm Name, Phone & Address
-            showProfileView();
-        } else {
-            errEl.innerText = data.detail || "Invalid Driver Secret Code. Access Denied.";
-            errEl.classList.remove("hidden");
-        }
-    } catch (err) {
-        errEl.innerText = "Unable to reach server to verify secret code. Check your internet connection.";
-        errEl.classList.remove("hidden");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "Verify & Access Portal";
-    }
-}
 
 function showProfileView() {
     hideAllViews();
@@ -770,7 +730,7 @@ async function refreshDriver(){if(!FMV.user || FMV.user.portal!=='driver')return
  updateProfileUI();renderManifest(orders);renderDriverShift();
  document.getElementById('total-cod-collected').textContent=FMV.money(cash.total_cod_collected);
  FMV.setHTML('fmv-cash-detail',`<div class="driver-finance-grid"><div class="driver-finance-metric driver-finance-expense"><span>Today’s expenses</span><strong>${FMV.money(cash.total_expenses)}</strong></div><div class="driver-finance-metric driver-finance-remit"><span>Cash to remit</span><strong>${FMV.money(cash.net_cash_to_remit)}</strong></div></div><div class="driver-section-heading"><div><p class="driver-eyebrow">YOUR RECORDS</p><h3>Expense activity</h3></div></div>`+(cash.expenses.length?cash.expenses.map(e=>`<div class="driver-expense-row"><span class="driver-expense-icon">${driverIcon('cash')}</span><div><strong>${FMV.escape(e.category)}</strong><p>${FMV.escape(e.date || '')}</p></div><strong>${FMV.money(e.amount)}</strong></div>`).join(''):FMV.empty('No expenses recorded today. Add a real shift expense when needed.')));
- FMV.setHTML('fmv-work-logs',history.shifts.slice().reverse().map(sh=>`<article class="driver-log-card"><div class="driver-log-top"><strong>${FMV.escape(sh.vehicle_plate)}</strong><span class="driver-status-chip">${FMV.escape(sh.status)}</span></div><p class="fmv-small">${FMV.escape(sh.clock_in)}</p><div class="driver-log-summary"><span>Work <b>${(sh.work_seconds/3600).toFixed(2)} h</b></span><span>Break <b>${(sh.break_duration_seconds/60).toFixed(0)} min</b></span></div><div class="driver-log-events">${sh.events.map(event=>`<p><span>${FMV.escape(event.status)}</span><time>${FMV.escape(event.at)}</time></p>`).join('')}</div></article>`).join('') || FMV.empty('Your working log will appear after you clock in.'));
+ FMV.setHTML('fmv-work-logs',history.shifts.slice().reverse().map(sh=>`<article class="driver-log-card"><div class="driver-log-top"><strong>${FMV.escape(sh.vehicle_plate)}</strong><span class="driver-status-chip">${FMV.escape(sh.status)}</span></div><p class="fmv-small">${FMV.escape(sh.clock_in)}</p><div class="driver-log-summary"><span>Work <b>${(sh.work_seconds/3600).toFixed(2)} h</b></span><span>Break <b>${(sh.break_duration_seconds/60).toFixed(0)} min</b></span></div><div class="driver-log-events">${sh.overtime_review?'<p>Extra time · '+FMV.escape(sh.overtime_review.status)+'</p>':''}${sh.events.map(event=>`<p><span>${FMV.escape(event.status)}</span><time>${FMV.escape(event.at)}</time></p>`).join('')}</div></article>`).join('') || FMV.empty('Your working log will appear after you clock in.'));
  window.FMVDriverCash?.render(cash,snapshot.notifications || []);
  selectDriverTab(fmvDriverTab);
 }));}
@@ -784,7 +744,7 @@ function renderDriverShift(){
  clearInterval(fmvTimer);if(sh){sh.syncedAt=Date.now();fmvTimer=setInterval(updateWorkTimers,1000);}updateWorkTimers();
 }
 function timeText(seconds){const n=Math.max(0,Math.floor(seconds));return [Math.floor(n/3600),Math.floor(n/60)%60,n%60].map(n=>String(n).padStart(2,'0')).join(':');}
-function updateWorkTimers(){const sh=fmvDriverShift,elapsed=sh?(Date.now()-sh.syncedAt)/1000:0;const work=(sh?.work_seconds || 0)+(sh?.status==='active'?elapsed:0),br=(sh?.break_duration_seconds || 0)+(sh?.status==='on_break'?elapsed:0);const w=document.getElementById('fmv-work-timer'),b=document.getElementById('fmv-break-timer');if(w)w.textContent=timeText(work);if(b)b.textContent=timeText(br);}
+function updateWorkTimers(){const sh=fmvDriverShift,elapsed=sh?(Date.now()-sh.syncedAt)/1000:0;const work=(sh?.recorded_work_seconds ?? sh?.work_seconds ?? 0)+(sh?.status==='active'?elapsed:0),br=(sh?.break_duration_seconds || 0)+(sh?.status==='on_break'?elapsed:0);const w=document.getElementById('fmv-work-timer'),b=document.getElementById('fmv-break-timer');if(w)w.textContent=timeText(work);if(b)b.textContent=timeText(br);}
 async function startShift(e){e.preventDefault();if(!document.getElementById('shift-form').reportValidity())return;return FMV.guard(async()=>{
   const checks=[...document.querySelectorAll('#shift-form input[type=checkbox]')];
   await FMV.request('/driver/shifts/clock-in',{method:'POST',body:{vehicle_plate:FMV.val('vehicle-plate'),odometer_start:Number(FMV.val('odometer-start')),checklist_json:{tires:checks[0]?.checked===true,brakes:checks[1]?.checked===true,fuel:checks[2]?.checked===true,cold_chain:checks[3]?.checked===true}}});
@@ -795,7 +755,7 @@ function ensureClockoutDialog(){
  const existing=document.getElementById('fmv-clockout-modal');
  if(existing)return existing;
  // Re-create the clock-out dialog if other optional UI initialization was interrupted.
- return driverDialog('fmv-clockout-modal','Finish your shift','Check the vehicle reading before recording the end of your working day.','<label>Closing odometer (km)<input id="fmv-closing-odometer" type="number" min="0" step="1" inputmode="numeric" required></label>','Clock out',async()=>{if(!fmvDriverShift)throw new Error('No active shift. Refresh your working day.');const reading=Number(document.getElementById('fmv-closing-odometer').value);if(!Number.isInteger(reading))throw new Error('Enter a whole-number odometer reading.');await FMV.request('/driver/shifts/'+encodeURIComponent(fmvDriverShift.id),{method:'PATCH',body:{status:'completed',odometer_end:reading}});FMV.notice('Shift completed and attendance saved.');await refreshDriver();});
+ return driverDialog('fmv-clockout-modal','Finish your shift','Check the vehicle reading before recording the end of your working day.','<label>Closing odometer (km)<input id="fmv-closing-odometer" type="number" min="0" step="1" inputmode="numeric" required></label>','Clock out',async()=>{if(!fmvDriverShift)throw new Error('No active shift. Refresh your working day.');const reading=Number(document.getElementById('fmv-closing-odometer').value);if(!Number.isInteger(reading))throw new Error('Enter a whole-number odometer reading.');const result=await FMV.request('/driver/shifts/'+encodeURIComponent(fmvDriverShift.id),{method:'PATCH',body:{status:'completed',odometer_end:reading}});FMV.notice(result.shift?.overtime_review?.status==='pending'?'Shift saved. Time beyond 15 work hours is awaiting manager review.':'Shift completed and attendance saved.');await refreshDriver();});
 }
 async function clockOut(){
  if(!fmvDriverShift)return;
